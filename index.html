@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обратный Отсчет</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Видео для воспроизведения -->
+    <div class="video-overlay">
+        <video id="introVideo" autoplay muted>
+            <source src="gggg4.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+        </video>
+    </div>
+    
+    <!-- Кнопка "Start" -->
+    <button class="start-button">Start</button>
+    
+    <!-- Содержимое сайта -->
+    <div class="hidden-content" id="siteContent">
+        <div class="countdown-container">
+            <div class="countdown">
+                <div class="time-section">
+                    <span id="days">00</span>
+                </div>
+                <span class="separator">:</span>
+                <div class="time-section">
+                    <span id="hours">00</span>
+                </div>
+                <span class="separator">:</span>
+                <div class="time-section">
+                    <span id="minutes">00</span>
+                </div>
+                <span class="separator">:</span>
+                <div class="time-section">
+                    <span id="seconds">00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="playButton" class="play-button"></button>
+    
+    <!-- Фоновое аудио (если нужно) -->
+    <audio id="background-audio" src="gg.mp3" preload="auto"></audio>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

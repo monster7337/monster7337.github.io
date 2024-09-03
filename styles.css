@@ -1,0 +1,220 @@
+/* Сброс стандартных отступов и паддингов */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Стиль для элемента видео, чтобы он занимал весь экран */
+.video-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: black;
+    z-index: 1000; /* Убедитесь, что видео поверх всего содержимого */
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Масштабирование видео для покрытия всего экрана */
+}
+
+/* Стиль для скрытия содержимого до завершения видео */
+.hidden-content {
+    opacity: 0;
+    transition: opacity 1s ease-in-out; /* Плавный переход появления */
+}
+
+.show-content {
+    opacity: 1;
+}
+
+/* Основной стиль для тела страницы */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #e2bc79; /* Заливаем весь фон цветом */
+    color: #ecf0f1;
+    min-height: 100vh; /* Обеспечиваем минимум высоту экрана */
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    background-image: url('../../l.png'); /* Добавляем изображение фоном */
+    background-size: cover; /* Масштабируем изображение, чтобы оно покрывало весь экран */
+    background-position: center; /* Центрируем изображение */
+    background-repeat: no-repeat; /* Изображение не будет повторяться */
+    background-attachment: fixed; /* Фиксируем фон при прокрутке */
+}
+
+/* Контейнер обратного отсчета */
+.countdown-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0); /* Полупрозрачный фон для читаемости */
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0); /* Убираем тень, если она была */
+    width: auto;
+    font-family: 'Blippo', Blippo, monospace;
+}
+
+/* Стиль для отображения обратного отсчета */
+.countdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.time-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 5px;
+}
+
+.time-section span {
+    display: block;
+}
+
+#days, #hours, #minutes, #seconds {
+    font-size: 24px;
+    font-weight: 900;
+    color: #ff0000;
+    animation: neonGlow 6s infinite alternate; /* Более медленная анимация пульсации */
+    transition: color 0.5s ease, transform 0.5s ease; /* Плавный переход цвета и трансформации */
+}
+
+/* Анимация изменения числа */
+@keyframes changeNumber {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Скрываем надписи */
+.label {
+    display: none;
+}
+
+.separator {
+    font-size: 24px;
+    margin: 0 5px;
+    color: #ffffff;
+    animation: separatorPulse 1.5s infinite; /* Анимация пульсации для двоеточий */
+}
+
+/* Анимация пульсации для двоеточий */
+@keyframes separatorPulse {
+    0%, 100% {
+        color: #ffffff;
+        text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff;
+    }
+    50% {
+        color: #ffffff;
+        text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    }
+}
+
+/* Анимация неонового свечения с переходом от красного к белому */
+@keyframes neonGlow {
+    0%, 100% {
+        color: #ffffff; /* Красный цвет в начале и конце анимации */
+        text-shadow: 0 0 10px #7e1111, 0 0 20px #7e1111, 0 0 30px #7e1111, 0 0 40px #7e1111;
+    }
+    50% {
+        color: #ffffff; /* Белый цвет в середине анимации */
+        text-shadow: 0 0 20px #ffffff, 0 0 30px #ffffff, 0 0 50px #ffffff, 0 0 60px #ffffff;
+    }
+}
+
+/* Кнопка "Start" */
+.start-button {
+    position: fixed;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #555555;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 30px #ffffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: none; /* Скрыта до конца видео */
+    z-index: 1001; /* Поверх видео */
+}
+
+/* Анимация при наведении */
+.start-button:hover {
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: 0 0 20px #ffffff, 0 0 40px #ffffff, 0 0 60px #ffffff;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 480px) {
+    body {
+        background-size: cover; /* Убедимся, что изображение покрывает весь экран */
+        background-position: center; /* Центрируем изображение */
+    }
+
+    .countdown-container {
+        top: 30px; /* Подкорректируйте значение для смещения */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    #days, #hours, #minutes, #seconds {
+        font-size: 50px;
+        font-weight: 900;
+        animation: neonGlow 6s infinite alternate; /* Анимация для мобильных устройств */
+        transition: color 0.5s ease, transform 0.5s ease;
+    }
+
+    .separator {
+        font-size: 20px;
+        color: #ff0000;
+    }
+
+    /* Стиль для кнопки "Start" на мобильных устройствах */
+    .start-button {
+        bottom: 5%; /* Сместим кнопку ниже на мобильных устройствах */
+        font-size: 18px; /* Уменьшаем размер текста */
+        padding: 12px 25px; /* Корректируем внутренние отступы */
+    }
+}
+.play-button {
+
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    border: none;
+    border-radius: 50%;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    outline: none;
+}
+
+.play-button:active {
+    background-color: darkred;
+}
+audio {
+    display: none;
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Конструктор розыгрышей</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>Конструктор розыгрышей</h1>
+      <p class="subtitle">
+        Создай честный розыгрыш за пару минут
+      </p>
+    </header>
+
+    <main class="app-main">
+      <section class="card">
+        <h2>1. Основная информация</h2>
+
+        <label class="field">
+          <span>Название розыгрыша</span>
+          <input id="titleInput" type="text" placeholder="Например: AirPods Pro" />
+        </label>
+
+        <label class="field">
+          <span>Описание</span>
+          <textarea id="descriptionInput" rows="3" placeholder="Кратко опиши, что разыгрывается и для кого."></textarea>
+        </label>
+
+        <label class="field">
+          <span>Дата и время окончания</span>
+          <input id="endAtInput" type="text" placeholder="Например: 20.11.2025 20:00 (МСК)" />
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>2. Условия участия</h2>
+
+        <label class="field">
+          <span>Каналы / чаты для подписки</span>
+          <textarea id="channelsInput" rows="3" placeholder="По одному на строку: @channel1, @channel2 ..."></textarea>
+        </label>
+
+        <label class="field checkbox-field">
+          <input id="emoji2faCheckbox" type="checkbox" />
+          <span>Требовать мини-проверку (эмодзи-2FA в боте)</span>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>3. Призы</h2>
+
+        <div id="prizesList"></div>
+
+        <button id="addPrizeBtn" class="btn secondary-btn" type="button">
+          + Добавить место
+        </button>
+      </section>
+
+      <section class="card">
+        <h2>4. Режим выбора победителей</h2>
+
+        <div class="mode-block">
+          <label class="mode-option">
+            <input
+              type="radio"
+              name="winnerMode"
+              value="fair"
+              checked
+            />
+            <div>
+              <div class="mode-title">Случайный розыгрыш</div>
+              <div class="mode-desc">
+                Победители определяются случайным образом среди всех,
+                кто выполнил условия.
+              </div>
+            </div>
+          </label>
+
+          <label class="mode-option">
+            <input
+              type="radio"
+              name="winnerMode"
+              value="rigged-demo"
+            />
+            <div>
+              <div class="mode-title">
+                 Настройки бота для админа
+              </div>
+              <div class="mode-desc warning">
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <div id="manualWinnersBlock" class="manual-winners hidden">
+          <div id="adminPasswordBlock" class="admin-password-block">
+            <label class="field">
+              <span>Введите пароль администратора</span>
+              <div class="password-input-row">
+                <input id="adminPasswordInput" type="password" placeholder="Введите пароль" />
+                <button id="checkPasswordBtn" class="btn secondary-btn" type="button">
+                  Проверить
+                </button>
+              </div>
+            </label>
+          </div>
+          <div id="manualWinnersContent" class="manual-winners-content hidden">
+            <h3>Ручной выбор победителей</h3>
+            <p class="hint">
+              Здесь ты заранее указываешь победителей для каждого места.
+              На защите можно показать, насколько легко это встроить.
+            </p>
+            <div id="manualWinnersList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>5. Результат</h2>
+
+        <div class="buttons-row">
+          <button id="generatePostBtn" class="btn primary-btn" type="button">
+            Сгенерировать текст поста для канала
+          </button>
+          <button id="copyPostBtn" class="btn secondary-btn" type="button">
+            Скопировать текст поста
+          </button>
+          <button id="clearPostBtn" class="btn secondary-btn" type="button">
+            Очистить пост
+          </button>
+          <button id="resetBtn" class="btn ghost-btn" type="button">
+            Сбросить всё
+          </button>
+          <button id="sendToBotBtn" class="btn primary-btn" type="button">
+    Отправить в бота
+  </button>
+        </div>
+
+        <label class="field">
+          <span>Текст для поста в канал</span>
+          <textarea id="postOutput" rows="10"></textarea>
+        </label>
+
+        <div class="post-image-section">
+          <img id="postImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%234A90E2' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'%3E🎁 Розыгрыш%3C/text%3E%3Ctext x='50%25' y='70%25' font-size='24' fill='white' text-anchor='middle' dominant-baseline='middle'%3EУчебный проект%3C/text%3E%3C/svg%3E" alt="Картинка для поста" class="post-image">
+        </div>
+
+        <div class="instruction-block">
+          <p class="instruction-title">📋 Как использовать:</p>
+          <ol class="instruction-list">
+            <li>Скопируй текст с помощью кнопки выше</li>
+            <li>Открой свой канал в Telegram</li>
+            <li>Вставь текст в пост</li>
+            <li>Прикрепи эту фотку к посту</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>
+        Проект для рандомного выбора победителей в розыгрышах.
+        Создан с ❤️
+      </p>
+    </footer>
+  </div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

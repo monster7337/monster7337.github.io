@@ -387,8 +387,8 @@ if (sendToBotBtn) {
     }
 
     const nonEmptyPrizes = prizes
-      .map((p) => (p || '').trim())
-      .filter(Boolean);
+  .map((p) => ((p && p.prize) || '').trim())
+  .filter(Boolean);
 
     if (!nonEmptyPrizes.length) {
       alert('Добавь хотя бы один приз.');

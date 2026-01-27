@@ -47,6 +47,21 @@ img {
   display: block;
 }
 
+.img-preload {
+  background: linear-gradient(110deg, rgba(255, 236, 220, 0.3) 8%, rgba(255, 250, 244, 0.6) 18%, rgba(255, 236, 220, 0.3) 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  filter: blur(10px);
+  opacity: 0.8;
+  transition: filter 0.6s ease, opacity 0.6s ease;
+}
+
+.img-preload.is-loaded {
+  animation: none;
+  filter: none;
+  opacity: 1;
+}
+
 button {
   font-family: inherit;
   color: inherit;
@@ -411,7 +426,7 @@ li {
 .hero-media {
   position: absolute;
   inset: 0;
-  background-image: url("assets/hero-barn.png");
+  background-image: url("assets/hero-barn.webp");
   background-size: cover;
   background-position: center;
   z-index: 0;
@@ -522,7 +537,7 @@ li {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("assets/fon.png");
+  background-image: url("assets/fon.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1137,6 +1152,15 @@ section[id] {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 @media (max-width: 1024px) {
   .grid-12 {
     grid-template-columns: repeat(8, 1fr);
@@ -1296,7 +1320,7 @@ main {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--pair-bg-image, url("assets/fon.png"));
+  background-image: var(--pair-bg-image, url("assets/fon.webp"));
   background-size: cover;
   background-position: center;
   filter: none;
@@ -1312,7 +1336,7 @@ main {
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 52c-16-12-20-20-20-28a12 12 0 0 1 22-6 12 12 0 0 1 22 6c0 8-4 16-20 28Z' fill='%23e8b3a0'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 10c8 0 14 5 14 12 0 9-7 14-14 14s-14-5-14-14c0-7 6-12 14-12Z' fill='%23e0b68c'/%3E%3Ccircle cx='24' cy='30' r='6' fill='%23c8925d'/%3E%3Ccircle cx='40' cy='30' r='6' fill='%23c8925d'/%3E%3C/svg%3E"),
-    url("assets/straw.png");
+    url("assets/straw.svg");
   background-repeat: no-repeat;
   background-position: 10% 14%, 88% 22%, 85% 86%;
   background-size: 36px 36px, 44px 44px, 200px auto;
@@ -1357,17 +1381,17 @@ main {
 }
 
 .pair-bg--one {
-  --pair-bg-image: url("assets/fon.png");
+  --pair-bg-image: url("assets/fon.webp");
 }
 
 .pair-bg--two {
-  --pair-bg-image: url("assets/fon.png");
+  --pair-bg-image: url("assets/fon.webp");
 }
 
 .pair-bg--three {
-  --pair-bg-image: url("assets/fon.png");
+  --pair-bg-image: url("assets/fon.webp");
 }
 
 .pair-bg--four {
-  --pair-bg-image: url("assets/fon.png");
+  --pair-bg-image: url("assets/fon.webp");
 }

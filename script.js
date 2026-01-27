@@ -1,4 +1,5 @@
 const body = document.body;
+const images = Array.from(document.querySelectorAll('img'));
 const burger = document.querySelector('.burger');
 const mobileMenu = document.querySelector('.mobile-menu');
 const mobileLinks = mobileMenu ? mobileMenu.querySelectorAll('a') : [];
@@ -18,6 +19,17 @@ if (burger) {
 
 mobileLinks.forEach((link) => {
   link.addEventListener('click', () => toggleMobileMenu(false));
+});
+
+images.forEach((img) => {
+  if (img.closest('.logo')) return;
+  img.classList.add('img-preload');
+  if (img.complete) {
+    img.classList.add('is-loaded');
+    return;
+  }
+  img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
+  img.addEventListener('error', () => img.classList.add('is-loaded'), { once: true });
 });
 
 const lightbox = document.querySelector('.lightbox');

@@ -2,6 +2,8 @@
 
 import clsx from "clsx";
 import { Check, ChevronLeft, ChevronRight, Pencil, Phone, SlidersHorizontal, Sparkles, UserRound, X } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "@/components/admin/admin.module.css";
 import {
@@ -178,18 +180,49 @@ function AppointmentQuickActions({ appointment }) {
 
 function NotebookAppointmentRow({ appointment }) {
   const { openDetails } = useAdmin();
+  const paymentNote = appointment.prepaymentAmount
+    ? `Внесено ${formatCurrency(appointment.prepaymentAmount)} · осталось ${formatCurrency(appointment.remainingAmount)}`
+    : "Без предоплаты";
 
   return (
     <button className={styles.notebookEntry} type="button" onClick={() => openDetails(appointment.id)}>
-      <span className={styles.notebookGuestBadge}>{appointment.guestCount}</span>
+      <span className={styles.notebookGuestBadge}>
+        <strong>{appointment.guestCount}</strong>
+        <small>чел.</small>
+      </span>
       <div className={styles.notebookEntryMain}>
-        <strong>{appointment.clientName}</strong>
-        <span>{appointment.phone}</span>
-        <small>{getTariffSummary(appointment)}</small>
-        <small>{getPaymentSummary(appointment)}</small>
-        {appointment.comment ? <small>{appointment.comment}</small> : null}
+        <div className={styles.notebookEntryTop}>
+          <div className={styles.notebookEntryIdentity}>
+            <strong>{appointment.clientName}</strong>
+          </div>
+          <StatusChip status={appointment.status} />
+        </div>
+
+        <div className={styles.notebookEntryFacts}>
+          <span className={styles.notebookEntryFact}>
+            <small className={styles.notebookEntryFactLabel}>Телефон</small>
+            <span className={styles.notebookEntryFactValue}>{appointment.phone}</span>
+          </span>
+
+          <span className={styles.notebookEntryFact}>
+            <small className={styles.notebookEntryFactLabel}>Тариф</small>
+            <span className={styles.notebookEntryFactValue}>{getTariffSummary(appointment, true)}</span>
+          </span>
+
+          <span className={`${styles.notebookEntryFact} ${styles.notebookEntryFactWide}`}>
+            <small className={styles.notebookEntryFactLabel}>Оплата</small>
+            <span className={styles.notebookEntryFactValue}>{formatCurrency(appointment.totalAmount)}</span>
+            <small className={styles.notebookEntryFactNote}>{paymentNote}</small>
+          </span>
+
+          {appointment.comment ? (
+            <span className={`${styles.notebookEntryFact} ${styles.notebookEntryFactWide}`}>
+              <small className={styles.notebookEntryFactLabel}>Комментарий</small>
+              <span className={styles.notebookEntryCommentText}>{appointment.comment}</span>
+            </span>
+          ) : null}
+        </div>
       </div>
-      <StatusChip status={appointment.status} />
     </button>
   );
 }
@@ -264,12 +297,13 @@ function NotebookScheduleView({ appointments, selectedDate }) {
   );
 }
 
-function StatCard({ label, value, note, tone = "default" }) {
+function StatCard({ label, value, note, tone = "default", action = null }) {
   return (
     <div className={styles.statCard} data-tone={tone}>
       <span>{label}</span>
       <strong>{value}</strong>
       <small>{note}</small>
+      {action ? <div className={styles.statCardAction}>{action}</div> : null}
     </div>
   );
 }
@@ -314,7 +348,17 @@ export function AdminDashboardPage() {
         <StatCard label="Гостей в дне" value={activeGuests} note="Сумма гостей по всем часам" tone="info" />
         <StatCard label="Доход за день" value={formatCurrency(dailyIncome)} note="Сколько уже внесено по записям этого дня" tone="accent" />
         <StatCard label="Свободных мест" value={remainingGuests} note="Сколько ещё можно посадить в этот день" tone="success" />
-        <StatCard label="Новых записей" value={newAppointments} note="Запросы, которые нужно подтвердить" tone="danger" />
+        <StatCard
+          label="Новых записей"
+          value={newAppointments}
+          note="Запросы, которые нужно подтвердить"
+          tone="danger"
+          action={
+            <Link className={styles.statCardLink} href="/admin/appointments?status=new">
+              Просмотреть
+            </Link>
+          }
+        />
       </div>
 
       <div className={styles.dashboardGrid}>
@@ -523,10 +567,19 @@ export function AdminCalendarPage() {
 }
 
 export function AdminAppointmentsPage() {
+  const searchParams = useSearchParams();
+  const statusFromQuery = searchParams.get("status");
   const { appointments, openCreateModal, searchQuery } = useAdmin();
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(
+    statusOptions.some((status) => status.value === statusFromQuery) ? statusFromQuery : "all"
+  );
   const [serviceFilter, setServiceFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
+
+  useEffect(() => {
+    const nextStatus = statusOptions.some((status) => status.value === statusFromQuery) ? statusFromQuery : "all";
+    setStatusFilter(nextStatus);
+  }, [statusFromQuery]);
 
   const filteredAppointments = useMemo(
     () =>

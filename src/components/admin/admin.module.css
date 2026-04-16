@@ -676,6 +676,31 @@
   padding: 20px;
 }
 
+.statCardAction {
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.statCardLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 700;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.statCardLink:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .statCard[data-tone="info"] {
   border-color: rgba(80, 210, 255, 0.18);
   background:
@@ -914,8 +939,7 @@
 }
 
 .notebookSlotHeader,
-.notebookSlotMeta,
-.notebookEntry {
+.notebookSlotMeta {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -934,9 +958,7 @@
 }
 
 .notebookSlotHeader span,
-.notebookSlotMeta span,
-.notebookEntryMain span,
-.notebookEntryMain small {
+.notebookSlotMeta span {
   color: var(--admin-muted);
 }
 
@@ -984,6 +1006,10 @@
 }
 
 .notebookEntry {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
   width: 100%;
   min-width: 0;
   padding: 12px 14px;
@@ -996,15 +1022,33 @@
 
 .notebookGuestBadge {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: var(--admin-accent-soft);
+  gap: 3px;
+  min-width: 58px;
+  height: 58px;
+  padding: 8px;
+  border: 1px solid rgba(80, 210, 255, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(80, 210, 255, 0.18), rgba(80, 210, 255, 0.08)),
+    rgba(80, 210, 255, 0.08);
   color: var(--admin-text);
   font-weight: 800;
   flex-shrink: 0;
+}
+
+.notebookGuestBadge strong {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.notebookGuestBadge small {
+  color: rgba(226, 233, 242, 0.76);
+  font-size: 0.68rem;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .notebookEntryMain {
@@ -1012,7 +1056,80 @@
   flex: 1;
   min-width: 0;
   flex-direction: column;
+  gap: 10px;
+}
+
+.notebookEntryTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notebookEntryIdentity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
   gap: 4px;
+}
+
+.notebookEntryIdentity strong {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.notebookEntryFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.notebookEntryFact {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.notebookEntryFactWide {
+  grid-column: 1 / -1;
+}
+
+.notebookEntryFactLabel {
+  color: var(--admin-muted);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.notebookEntryFactValue,
+.notebookEntryFactNote,
+.notebookEntryCommentText {
+  overflow-wrap: anywhere;
+}
+
+.notebookEntryFactValue {
+  color: var(--admin-text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.notebookEntryFactNote {
+  color: var(--admin-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.notebookEntryCommentText {
+  color: var(--admin-text);
+  font-size: 0.84rem;
+  line-height: 1.42;
 }
 
 .notebookEntryMain strong,
@@ -2261,6 +2378,17 @@
     border-radius: 18px;
   }
 
+  .statCardAction {
+    padding-top: 4px;
+  }
+
+  .statCardLink {
+    width: 100%;
+    min-height: 36px;
+    border-radius: 12px;
+    font-size: 0.84rem;
+  }
+
   .statCard span {
     font-size: 0.82rem;
     line-height: 1.25;
@@ -2615,21 +2743,88 @@
     font-size: 1.2rem;
   }
 
+  .notebookBoard {
+    grid-template-columns: 1fr;
+  }
+
+  .notebookSlotMeta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .notebookSlotMeta span {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+
   .notebookEntry {
-    padding: 10px 12px;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
     border-radius: 14px;
   }
 
   .notebookGuestBadge {
-    min-width: 30px;
-    height: 30px;
-    font-size: 0.82rem;
+    min-width: 52px;
+    height: 52px;
+    padding: 6px;
+    border-radius: 16px;
   }
 
-  .notebookEntryMain small,
-  .notebookEntryMain span {
+  .notebookGuestBadge strong {
+    font-size: 1.05rem;
+  }
+
+  .notebookGuestBadge small {
+    font-size: 0.62rem;
+  }
+
+  .notebookEntryMain {
+    gap: 8px;
+  }
+
+  .notebookEntryTop {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .notebookEntryIdentity strong {
+    font-size: 0.96rem;
+    line-height: 1.2;
+  }
+
+  .notebookEntryFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .notebookEntryFact {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .notebookEntryFactLabel {
+    font-size: 0.66rem;
+  }
+
+  .notebookEntryFactValue {
     font-size: 0.82rem;
-    line-height: 1.3;
+    line-height: 1.32;
+  }
+
+  .notebookEntryFactNote,
+  .notebookEntryCommentText {
+    font-size: 0.76rem;
+    line-height: 1.34;
   }
 
   .notebookAddButton {

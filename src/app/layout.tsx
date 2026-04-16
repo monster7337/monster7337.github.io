@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import WarmParticles from "@/components/WarmParticles";
-import CursorWarmth from "@/components/CursorWarmth";
+import AmbientEffects from "@/components/AmbientEffects";
 
 export const metadata: Metadata = {
   title: 'Антикафе "В Ёлках" — минипиги и белки',
@@ -13,8 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru">
       <body>
-        <WarmParticles />
-        <CursorWarmth />
+        <AmbientEffects />
         {children}
       </body>
     </html>

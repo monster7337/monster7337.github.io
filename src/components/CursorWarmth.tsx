@@ -2,8 +2,10 @@
 
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect } from "react";
+import { useIsMobileMotion } from "@/lib/useMobileMotion";
 
 export default function CursorWarmth() {
+  const isMobileMotion = useIsMobileMotion();
   const x = useMotionValue(-220);
   const y = useMotionValue(-220);
 
@@ -11,13 +13,21 @@ export default function CursorWarmth() {
   const sy = useSpring(y, { stiffness: 120, damping: 24, mass: 0.5 });
 
   useEffect(() => {
+    if (isMobileMotion) {
+      return undefined;
+    }
+
     const onMove = (e: MouseEvent) => {
       x.set(e.clientX - 120);
       y.set(e.clientY - 120);
     };
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, [x, y]);
+  }, [isMobileMotion, x, y]);
+
+  if (isMobileMotion) {
+    return null;
+  }
 
   return (
     <motion.div

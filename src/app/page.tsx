@@ -13,19 +13,36 @@ import Reviews from "@/components/sections/Reviews";
 import FAQ from "@/components/sections/FAQ";
 import BookingPlanner from "@/components/sections/BookingPlanner";
 import Contacts from "@/components/sections/Contacts";
-import BookingModal from "@/components/BookingModal";
 import Footer from "@/components/Footer";
-import { DEFAULT_BOOKING_DATE, DEFAULT_BOOKING_TIME } from "@/lib/bookingOptions";
+import { BookingTicketId } from "@/lib/bookingCatalog";
+
+type BookingPreset = {
+  ticketId?: BookingTicketId;
+  dateId?: string;
+  time?: string;
+  nonce: number;
+};
 
 export default function Page() {
-  const [bookingOpen, setBookingOpen] = useState(false);
-  const [bookingDate, setBookingDate] = useState<string>(DEFAULT_BOOKING_DATE);
-  const [bookingTime, setBookingTime] = useState<string>(DEFAULT_BOOKING_TIME);
+  const [bookingPreset, setBookingPreset] = useState<BookingPreset>({ nonce: 0 });
 
-  const openBooking = (nextDefaults?: { date?: string; time?: string }) => {
-    if (nextDefaults?.date) setBookingDate(nextDefaults.date);
-    if (nextDefaults?.time) setBookingTime(nextDefaults.time);
-    setBookingOpen(true);
+  const scrollToBooking = () => {
+    window.requestAnimationFrame(() => {
+      document.getElementById("booking")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const openBooking = (nextDefaults?: { ticketId?: BookingTicketId; dateId?: string; time?: string }) => {
+    if (nextDefaults?.ticketId || nextDefaults?.dateId || nextDefaults?.time) {
+      setBookingPreset((current) => ({
+        ticketId: nextDefaults.ticketId,
+        dateId: nextDefaults.dateId,
+        time: nextDefaults.time,
+        nonce: current.nonce + 1,
+      }));
+    }
+
+    scrollToBooking();
   };
 
   return (
@@ -35,23 +52,19 @@ export default function Page() {
       <About />
       <VisitFlow />
       <AnimalRules />
-      <Animals />
-      <Pricing onOpenBooking={() => openBooking()} />
+      <Animals onOpenBooking={() => openBooking()} />
+      <Pricing onOpenBooking={openBooking} />
       <Gallery onOpenBooking={() => openBooking()} />
       <Reviews />
       <FAQ />
-      <BookingPlanner onOpenBooking={openBooking} />
+      <BookingPlanner
+        key={bookingPreset.nonce}
+        initialTicketId={bookingPreset.ticketId}
+        initialDateId={bookingPreset.dateId}
+        initialTime={bookingPreset.time}
+      />
       <Contacts />
       <Footer />
-
-      <BookingModal
-        open={bookingOpen}
-        onClose={() => setBookingOpen(false)}
-        date={bookingDate}
-        time={bookingTime}
-        onDateChange={setBookingDate}
-        onTimeChange={setBookingTime}
-      />
     </main>
   );
 }

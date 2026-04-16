@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import { useIsMobileMotion } from "@/lib/useMobileMotion";
 
 type Ember = {
   left: number;
@@ -21,6 +22,7 @@ type Firefly = {
 };
 
 export default function WarmParticles() {
+  const isMobileMotion = useIsMobileMotion();
   const layerRef = useRef<HTMLDivElement | null>(null);
   const idleTimerRef = useRef<number | null>(null);
 
@@ -51,6 +53,10 @@ export default function WarmParticles() {
   );
 
   useEffect(() => {
+    if (isMobileMotion) {
+      return undefined;
+    }
+
     let raf = 0;
     const applyLayer = (opacity: number, blur: number, scale: number) => {
       const node = layerRef.current;
@@ -86,7 +92,11 @@ export default function WarmParticles() {
       if (raf) window.cancelAnimationFrame(raf);
       if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
     };
-  }, []);
+  }, [isMobileMotion]);
+
+  if (isMobileMotion) {
+    return null;
+  }
 
   return (
     <div

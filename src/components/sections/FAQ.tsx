@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
+
 const faqs = [
   {
     q: "Можно без записи?",
@@ -8,27 +10,34 @@ const faqs = [
   { q: "С какого возраста детям можно?", a: "Можно с детьми, до 10 лет только со взрослыми." },
   { q: "Что делать при аллергии?", a: "Сообщите заранее. Поможем подобрать формат или ограничить контакт." },
   { q: "Можно ли фото и видео?", a: "Да, можно. Просим выключить вспышку." },
-  { q: "Сколько длится визит?", a: "Обычно от 60 минут, также есть безлимитные форматы." },
+  { q: "Сколько длится визит?", a: "Каждый сеанс длится ровно 1 час." },
   { q: "Есть ли парковка рядом?", a: "Да, в районе переулка Гривцова есть городские парковочные места." },
   { q: "Можно со своей едой?", a: "Напитки и сладости у нас есть, по остальному лучше уточнить при записи." },
-  { q: "Как отменить запись?", a: "Напишите в Telegram или позвоните — перенесем на удобное время." },
+  { q: "Как отменить запись?", a: "Напишите в Telegram или позвоните заранее. Поможем перенести визит или отменить бронь." },
 ];
 
 export default function FAQ() {
   return (
     <section
+      id="faq"
       className="forest-section py-12 sm:py-14"
       style={{ backgroundImage: "url('/bg/grass3.png')" }}
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.65)]" />
 
       <div className="container-x section-content">
-        <h2 className="section-title">FAQ</h2>
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
+        <h2 className="section-title text-[1.95rem] sm:text-[2.35rem]">Частые вопросы</h2>
+        <p className="mt-2 max-w-[620px] text-[0.92rem] text-[#efe4c8]/86 sm:hidden">
+          Самые частые вопросы перед записью в одном месте.
+        </p>
+        <div className="mt-5 grid gap-3 md:mt-6 md:grid-cols-2">
           {faqs.map((f) => (
-            <details key={f.q} className="glass-leaf-card">
-              <summary className="cursor-pointer text-base font-bold text-[#f8f0de]">{f.q}</summary>
-              <p className="mt-2 text-sm text-[#efe4c8]/85">{f.a}</p>
+            <details key={f.q} className="faq-item glass-leaf-card p-4 sm:p-5">
+              <summary className="faq-summary flex cursor-pointer items-center justify-between gap-3 text-[0.95rem] font-bold leading-[1.3] text-[#f8f0de] sm:text-base">
+                <span>{f.q}</span>
+                <ChevronDown className="faq-chevron h-4 w-4 shrink-0 text-[#dcc892]" />
+              </summary>
+              <p className="mt-2 text-[0.8rem] leading-[1.45] text-[#efe4c8]/85 sm:text-sm">{f.a}</p>
             </details>
           ))}
         </div>

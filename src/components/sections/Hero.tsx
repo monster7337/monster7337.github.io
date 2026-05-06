@@ -40,7 +40,7 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             className="mt-2 text-[2.15rem] font-black leading-[0.94] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:mt-3 sm:text-[3rem] sm:leading-none sm:text-[3.8rem]"
           >
             <span className="sm:hidden">Тёплый визит с белками и минипигами</span>
-            <span className="hidden sm:inline">Место для незабываемого отдыха всей семьей</span>
+            <span className="hidden sm:inline">Место для незабываемого отдыха всей семьей и в компании друзей</span>
           </motion.h1>
 
           <motion.p

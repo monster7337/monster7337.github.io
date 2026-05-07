@@ -17,7 +17,7 @@ export default function Hero({ onOpenBooking }: HeroProps) {
           fill
           unoptimized
           priority
-          className="object-cover object-[30%_42%] sm:translate-x-[2%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-center"
+          className="object-cover object-[33%_42%] sm:-translate-x-[1%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-[52%_50%]"
         />
       </div>
       <div className="forest-overlay bg-[rgba(7,17,10,.28)] sm:bg-[rgba(7,17,10,.36)]" />

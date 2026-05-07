@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "@/components/admin/admin.module.css";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/components/admin/admin-data";
 
 export function AdminLoginPage() {
+  const router = useRouter();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,11 +27,11 @@ export function AdminLoginPage() {
       const storedSettings = readAdminJson(ADMIN_SETTINGS_KEY, defaultSettings);
 
       if (isAuthorized) {
-        window.location.replace(storedSettings.startRoute ?? defaultSettings.startRoute);
+        router.replace(storedSettings.startRoute ?? defaultSettings.startRoute);
         return;
       }
     } catch {}
-  }, []);
+  }, [router]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -42,7 +44,7 @@ export function AdminLoginPage() {
       writeAdminStorage(ADMIN_AUTH_KEY, "true");
       const storedSettings = readAdminJson(ADMIN_SETTINGS_KEY, defaultSettings);
       const nextRoute = storedSettings.startRoute ?? defaultSettings.startRoute;
-      window.location.assign(nextRoute);
+      router.push(nextRoute);
       return;
     }
 
@@ -58,9 +60,9 @@ export function AdminLoginPage() {
 
       <form className={styles.authCard} onSubmit={handleSubmit}>
         <div className={styles.authBrand}>
-          <span className={styles.authBadge}>PL</span>
+          <span className={styles.authBadge}>ВЁ</span>
           <div>
-            <strong>Piggy Land CRM</strong>
+            <strong>В Ёлках CRM</strong>
             <span>Тёмная админка для управления записями</span>
           </div>
         </div>
@@ -71,7 +73,7 @@ export function AdminLoginPage() {
             Demo access
           </p>
           <h1>Вход в CRM</h1>
-          <p>Быстрый mock-вход для демо-версии админки без серверной авторизации.</p>
+          <p>Вход в локальную CRM без серверной авторизации.</p>
         </div>
 
         <label className={styles.field}>

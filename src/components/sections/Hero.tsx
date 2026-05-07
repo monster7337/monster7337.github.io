@@ -9,21 +9,22 @@ type HeroProps = {
 
 export default function Hero({ onOpenBooking }: HeroProps) {
   return (
-    <section className="forest-section min-h-[100svh] border-t-0 sm:min-h-[78vh]">
-      <div className="absolute inset-0">
+    <section className="forest-section min-h-[100svh] border-t-0 sm:min-h-[calc(100svh-80px)]">
+      <div className="absolute inset-0 overflow-hidden">
         <Image
-          src="/bg/hero.png"
+          src="/bg/hero.png?v=20260507"
           alt='Антикафе "В Ёлках"'
           fill
+          unoptimized
           priority
-          className="object-cover object-[30%_center] sm:object-center"
+          className="object-cover object-[30%_42%] sm:translate-x-[2%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-center"
         />
       </div>
-      <div className="forest-overlay bg-[rgba(7,17,10,.3)] sm:bg-[rgba(7,17,10,.44)]" />
+      <div className="forest-overlay bg-[rgba(7,17,10,.28)] sm:bg-[rgba(7,17,10,.36)]" />
 
-      <div className="container-x section-content flex min-h-[100svh] flex-col justify-end pb-8 pt-24 sm:min-h-[78vh] sm:justify-center sm:pb-12 sm:pt-16">
-        <div className="mx-auto w-full max-w-[850px]">
-          <div className="mx-auto max-w-[350px] rounded-[28px] border border-[rgba(236,222,187,.24)] bg-[rgba(9,23,14,.42)] px-4 py-4 text-center shadow-[0_18px_40px_rgba(0,0,0,.24)] backdrop-blur-xl sm:max-w-[850px] sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:backdrop-blur-none">
+      <div className="container-x section-content flex min-h-[100svh] flex-col justify-center pb-10 pt-24 sm:min-h-[calc(100svh-80px)] sm:pb-10 sm:pt-10">
+        <div className="mx-auto w-full max-w-[520px]">
+          <div className="mx-auto rounded-[28px] border border-[rgba(236,222,187,.22)] bg-[rgba(9,23,14,.20)] px-4 py-4 text-center shadow-[0_22px_52px_rgba(0,0,0,.24)] backdrop-blur-md sm:rounded-[30px] sm:px-6 sm:py-6">
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -37,17 +38,17 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.06 }}
-            className="mt-2 text-[2.15rem] font-black leading-[0.94] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:mt-3 sm:text-[3rem] sm:leading-none sm:text-[3.8rem]"
+            className="mt-2 text-[1.68rem] font-black leading-[0.98] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:mt-3 sm:text-[2.25rem] sm:leading-[1.04]"
           >
-            <span className="sm:hidden">Тёплый визит с белками и минипигами</span>
-            <span className="hidden sm:inline">Место для незабываемого отдыха всей семьей и в компании друзей</span>
+            <span className="sm:hidden">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
+            <span className="hidden sm:inline">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.12 }}
-            className="mx-auto mt-3 max-w-[280px] text-[0.84rem] font-semibold leading-[1.45] text-[#ffefc8]/94 sm:mt-4 sm:max-w-[760px] sm:text-[1.05rem] sm:font-bold sm:text-[#ffefc8]"
+            className="mx-auto mt-3 max-w-[280px] text-[0.84rem] font-semibold leading-[1.45] text-[#ffefc8]/94 sm:mt-4 sm:max-w-[560px] sm:text-[1rem] sm:font-bold sm:text-[#ffefc8]"
           >
             <span className="sm:hidden">Чай, уют и живое общение с животными по предварительной записи.</span>
             <span className="hidden sm:inline">ВНИМАНИЕ!!! ПОСЕЩЕНИЕ АНТИКАФЕ СТРОГО ПО ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ!!!</span>
@@ -57,7 +58,7 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.18 }}
-            className="mt-5 grid gap-2.5 sm:mt-7 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-4"
+            className="mt-4 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-4"
           >
             <button className="btn-forest min-h-[44px] w-full sm:min-w-40 sm:w-auto" onClick={onOpenBooking}>
               Онлайн-запись

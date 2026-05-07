@@ -51,16 +51,22 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
     <>
       <header className="sticky top-0 z-50 border-b border-[#a48c4b]/55 bg-[rgba(9,23,14,.84)] backdrop-blur-sm">
         <div className="container-x">
-          <div className="hidden h-14 items-center justify-between gap-4 md:flex">
-            <a href="#" className="flex min-w-0 items-center gap-3">
-              <Image src="/logo/elkah-emblem.svg" alt='Логотип "В Ёлках"' width={42} height={42} />
+          <div className="hidden h-20 items-center justify-between gap-5 md:flex">
+            <a href="#" className="flex min-w-0 items-center gap-4">
+              <Image
+                src="/logo/logo.png"
+                alt='Логотип "В Ёлках"'
+                width={68}
+                height={68}
+                className="h-[68px] w-[68px] object-contain"
+              />
               <div className="min-w-0 leading-none">
-                <div className="truncate text-[1.7rem] font-black tracking-tight text-[#f6efde]">В Ёлках</div>
-                <div className="text-[10px] text-[#ede4cc]/80">Антикафе с белками и минипигами</div>
+                <div className="truncate text-[2.05rem] font-black tracking-tight text-[#f6efde]">В Ёлках</div>
+                <div className="text-[11px] text-[#ede4cc]/80">Антикафе с белками и минипигами</div>
               </div>
             </a>
 
-            <nav className="flex items-center gap-6 text-[0.95rem] font-semibold text-[#f0e7d2]/90">
+            <nav className="flex items-center gap-7 text-[1rem] font-semibold text-[#f0e7d2]/90">
               {navLinks.map((link) => (
                 <a key={link.href} href={link.href} className="hover:text-white">
                   {link.label}
@@ -72,16 +78,16 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={onOpenBooking}
-              className="btn-forest px-5 py-2 text-sm"
+              className="btn-forest px-6 py-3 text-[0.95rem]"
             >
               Записаться
             </motion.button>
           </div>
 
-          <div className="flex h-[62px] items-center gap-2 md:hidden">
+          <div className="flex h-[72px] items-center gap-2.5 md:hidden">
             <a
               href={BOOKING_CONTACTS.phoneHref}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d6c388]/45 bg-[rgba(255,255,255,.08)] text-[#f4ecd8] shadow-[0_10px_20px_rgba(0,0,0,.18)]"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d6c388]/45 bg-[rgba(255,255,255,.08)] text-[#f4ecd8] shadow-[0_10px_20px_rgba(0,0,0,.18)]"
               aria-label="Позвонить"
             >
               <Phone size={18} />
@@ -91,7 +97,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               whileHover={{ y: -1 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleBooking}
-              className="btn-forest mobile-booking-pulse flex-1 rounded-[16px] px-4 py-2 text-[0.84rem]"
+              className="btn-forest mobile-booking-pulse flex-1 rounded-[16px] px-4 py-3 text-[0.9rem]"
             >
               Записаться
             </motion.button>
@@ -99,7 +105,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
             <button
               type="button"
               onClick={() => setIsMenuOpen(true)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d6c388]/45 bg-[rgba(255,255,255,.08)] text-[#f4ecd8] shadow-[0_10px_20px_rgba(0,0,0,.18)]"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d6c388]/45 bg-[rgba(255,255,255,.08)] text-[#f4ecd8] shadow-[0_10px_20px_rgba(0,0,0,.18)]"
               aria-label="Открыть меню"
               aria-expanded={isMenuOpen}
             >

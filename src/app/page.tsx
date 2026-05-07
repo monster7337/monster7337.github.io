@@ -4,15 +4,15 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
+import Pricing from "@/components/sections/Pricing";
+import Animals from "@/components/sections/Animals";
 import VisitFlow from "@/components/sections/VisitFlow";
 import AnimalRules from "@/components/sections/AnimalRules";
-import Animals from "@/components/sections/Animals";
-import Pricing from "@/components/sections/Pricing";
 import Gallery from "@/components/sections/Gallery";
 import Reviews from "@/components/sections/Reviews";
-import FAQ from "@/components/sections/FAQ";
 import BookingPlanner from "@/components/sections/BookingPlanner";
 import Contacts from "@/components/sections/Contacts";
+import FAQ from "@/components/sections/FAQ";
 import Footer from "@/components/Footer";
 import { BookingTicketId } from "@/lib/bookingCatalog";
 
@@ -50,13 +50,12 @@ export default function Page() {
       <Navbar onOpenBooking={() => openBooking()} />
       <Hero onOpenBooking={() => openBooking()} />
       <About />
+      <Pricing onOpenBooking={openBooking} />
+      <Animals onOpenBooking={() => openBooking()} />
       <VisitFlow />
       <AnimalRules />
-      <Animals onOpenBooking={() => openBooking()} />
-      <Pricing onOpenBooking={openBooking} />
       <Gallery onOpenBooking={() => openBooking()} />
       <Reviews />
-      <FAQ />
       <BookingPlanner
         key={bookingPreset.nonce}
         initialTicketId={bookingPreset.ticketId}
@@ -64,6 +63,7 @@ export default function Page() {
         initialTime={bookingPreset.time}
       />
       <Contacts />
+      <FAQ />
       <Footer />
     </main>
   );

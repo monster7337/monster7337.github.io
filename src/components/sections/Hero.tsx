@@ -23,13 +23,13 @@ export default function Hero({ onOpenBooking }: HeroProps) {
       <div className="forest-overlay bg-[rgba(7,17,10,.28)] sm:bg-[rgba(7,17,10,.36)]" />
 
       <div className="container-x section-content flex min-h-[100svh] flex-col justify-center pb-10 pt-24 sm:min-h-[calc(100svh-80px)] sm:pb-10 sm:pt-10">
-        <div className="mx-auto w-full max-w-[520px]">
-          <div className="mx-auto rounded-[28px] border border-[rgba(236,222,187,.22)] bg-[rgba(9,23,14,.20)] px-4 py-4 text-center shadow-[0_22px_52px_rgba(0,0,0,.24)] backdrop-blur-md sm:rounded-[30px] sm:px-6 sm:py-6">
+        <div className="mx-auto w-full max-w-[430px] sm:max-w-[460px]">
+          <div className="mx-auto rounded-[22px] border border-[rgba(236,222,187,.18)] bg-[rgba(9,23,14,.12)] px-3 py-3 text-center shadow-[0_18px_42px_rgba(0,0,0,.20)] backdrop-blur-[6px] sm:rounded-[24px] sm:px-5 sm:py-4">
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-[10px] font-bold tracking-[0.18em] text-[#e7dbbb]/82 sm:text-xs sm:tracking-[0.2em] sm:text-[#e7dbbb]/85"
+            className="text-[9px] font-bold tracking-[0.16em] text-[#e7dbbb]/80 sm:text-[11px] sm:tracking-[0.18em] sm:text-[#e7dbbb]/82"
           >
             АНТИКАФЕ &quot;В ЁЛКАХ&quot;
           </motion.p>
@@ -38,7 +38,7 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.06 }}
-            className="mt-2 text-[1.68rem] font-black leading-[0.98] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:mt-3 sm:text-[2.25rem] sm:leading-[1.04]"
+            className="mt-2 text-[1.42rem] font-black leading-[1.02] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:text-[1.88rem] sm:leading-[1.04]"
           >
             <span className="sm:hidden">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
             <span className="hidden sm:inline">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
@@ -48,7 +48,7 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.12 }}
-            className="mx-auto mt-3 max-w-[280px] text-[0.84rem] font-semibold leading-[1.45] text-[#ffefc8]/94 sm:mt-4 sm:max-w-[560px] sm:text-[1rem] sm:font-bold sm:text-[#ffefc8]"
+            className="mx-auto mt-2 max-w-[260px] text-[0.76rem] font-semibold leading-[1.4] text-[#ffefc8]/90 sm:mt-3 sm:max-w-[410px] sm:text-[0.9rem] sm:font-bold sm:text-[#ffefc8]/94"
           >
             <span className="sm:hidden">Чай, уют и живое общение с животными по предварительной записи.</span>
             <span className="hidden sm:inline">ВНИМАНИЕ!!! ПОСЕЩЕНИЕ АНТИКАФЕ СТРОГО ПО ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ!!!</span>
@@ -58,12 +58,12 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.18 }}
-            className="mt-4 grid gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-4"
+            className="mt-3 grid gap-2 sm:mt-5 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3"
           >
-            <button className="btn-forest min-h-[44px] w-full sm:min-w-40 sm:w-auto" onClick={onOpenBooking}>
+            <button className="btn-forest min-h-10 w-full px-4 text-sm sm:min-w-36 sm:w-auto" onClick={onOpenBooking}>
               Онлайн-запись
             </button>
-            <a className="btn-cream min-h-[44px] w-full sm:min-w-40 sm:w-auto" href="#about">
+            <a className="btn-cream min-h-10 w-full px-4 text-sm sm:min-w-36 sm:w-auto" href="#about">
               Узнать больше
             </a>
           </motion.div>

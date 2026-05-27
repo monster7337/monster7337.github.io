@@ -2,24 +2,35 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, Phone, X } from "lucide-react";
+import { ChevronRight, Menu, Phone, X } from "lucide-react";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 
 type NavbarProps = {
   onOpenBooking: () => void;
+  homeHrefPrefix?: string;
 };
 
-const navLinks = [
+const navSections = [
   { label: "О нас", href: "#about" },
   { label: "Тарифы", href: "#pricing" },
-  { label: "Запись", href: "#booking" },
   { label: "Галерея", href: "#gallery" },
   { label: "Контакты", href: "#contacts" },
 ];
 
-export default function Navbar({ onOpenBooking }: NavbarProps) {
+export default function Navbar({ onOpenBooking, homeHrefPrefix = "" }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const navLinks = [
+    ...navSections.map((item) => ({
+      ...item,
+      href: `${homeHrefPrefix}${item.href}`,
+    })),
+    { label: "Запись", href: "/booking" },
+  ];
+
+  const logoHref = homeHrefPrefix ? "/" : "#";
 
   useEffect(() => {
     const html = document.documentElement;
@@ -52,19 +63,13 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
       <header className="sticky top-0 z-50 border-b border-[#a48c4b]/55 bg-[rgba(9,23,14,.84)] backdrop-blur-sm">
         <div className="container-x">
           <div className="hidden h-20 items-center justify-between gap-5 md:flex">
-            <a href="#" className="flex min-w-0 items-center gap-4">
-              <Image
-                src="/logo/logo.png"
-                alt='Логотип "В Ёлках"'
-                width={68}
-                height={68}
-                className="h-[68px] w-[68px] object-contain"
-              />
+            <Link href={logoHref} className="flex min-w-0 items-center gap-4">
+              <Image src="/logo/logo.png" alt='Логотип "В Ёлках"' width={68} height={68} className="h-[68px] w-[68px] object-contain" />
               <div className="min-w-0 leading-none">
                 <div className="truncate text-[2.05rem] font-black tracking-tight text-[#f6efde]">В Ёлках</div>
                 <div className="text-[11px] text-[#ede4cc]/80">Антикафе с белками и минипигами</div>
               </div>
-            </a>
+            </Link>
 
             <nav className="flex items-center gap-7 text-[1rem] font-semibold text-[#f0e7d2]/90">
               {navLinks.map((link) => (
@@ -74,12 +79,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               ))}
             </nav>
 
-            <motion.button
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onOpenBooking}
-              className="btn-forest px-6 py-3 text-[0.95rem]"
-            >
+            <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} onClick={onOpenBooking} className="btn-forest px-6 py-3 text-[0.95rem]">
               Записаться
             </motion.button>
           </div>
@@ -117,18 +117,8 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
 
       <AnimatePresence>
         {isMenuOpen ? (
-          <motion.div
-            className="fixed inset-0 z-[70] md:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <button
-              type="button"
-              className="absolute inset-0 bg-[rgba(5,13,8,.62)] backdrop-blur-sm"
-              onClick={closeMenu}
-              aria-label="Закрыть меню"
-            />
+          <motion.div className="fixed inset-0 z-[70] md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <button type="button" className="absolute inset-0 bg-[rgba(5,13,8,.62)] backdrop-blur-sm" onClick={closeMenu} aria-label="Закрыть меню" />
 
             <motion.div
               initial={{ opacity: 0, y: -16, scale: 0.98 }}
@@ -162,7 +152,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
                     className="flex min-h-[48px] items-center justify-between rounded-[18px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-4 text-[0.94rem] font-semibold text-[#f4ecd8]"
                   >
                     {link.label}
-                    <span className="text-[#dccf9d]/72">↗</span>
+                    <ChevronRight size={16} className="text-[#dccf9d]/72" />
                   </a>
                 ))}
 

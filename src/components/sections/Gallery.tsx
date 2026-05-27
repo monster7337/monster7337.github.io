@@ -59,9 +59,7 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
   };
   const openBySrc = (src: string) => {
     const index = galleryItems.findIndex((item) => item.src === src);
-    if (index >= 0) {
-      setActiveIndex(index);
-    }
+    if (index >= 0) setActiveIndex(index);
   };
 
   useModalViewportLock({
@@ -81,11 +79,7 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
 
   return (
     <>
-      <section
-        id="gallery"
-        className="forest-section py-14 sm:py-16"
-        style={{ backgroundImage: "url('/bg/grass2.png')" }}
-      >
+      <section id="gallery" className="forest-section py-14 sm:py-16" style={{ backgroundImage: "url('/bg/grass2.png')" }}>
         <div className="forest-overlay bg-[rgba(8,18,11,.58)]" />
 
         <div className="container-x section-content">
@@ -96,11 +90,13 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
 
           <div className="mt-5 grid gap-4 lg:mt-7 lg:grid-cols-12 lg:gap-5">
             <div className="lg:col-span-9">
-              <div className="grid grid-cols-2 gap-3 sm:hidden">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {previewItems.map((item, idx) => (
-                  <button
+                  <motion.button
                     key={item.src}
                     type="button"
+                    {...reveal(idx)}
+                    whileHover={{ y: -4, scale: 1.01 }}
                     className="group relative block overflow-hidden rounded-[22px] border border-[#dac792]/58 bg-[rgba(14,31,19,.58)] text-left shadow-[0_8px_22px_rgba(0,0,0,.28)]"
                     onClick={() => openBySrc(item.src)}
                     aria-label={`Открыть ${item.alt}`}
@@ -114,58 +110,22 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
                         unoptimized
                         placeholder="blur"
                         blurDataURL={galleryImageBlurDataUrl}
-                        sizes="50vw"
-                        className="object-cover transition duration-500 group-active:scale-[1.02]"
+                        sizes="(min-width: 640px) 30vw, 50vw"
+                        className="object-cover transition duration-500 group-hover:scale-[1.02]"
                       />
-                      <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[rgba(6,14,9,.94)] via-[rgba(6,14,9,.42)] to-transparent px-3 py-3">
-                        <span className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#f0e4bf]">
+                      <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-[rgba(6,14,9,.92)] via-[rgba(6,14,9,.42)] to-transparent px-3 py-3 sm:px-4">
+                        <span className="rounded-full border border-[#dcc892]/30 bg-[rgba(8,16,11,.55)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f0e4bf]">
                           Фото {idx + 1}
                         </span>
+                        <span className="text-xs font-semibold text-[#f6edd7]">Смотреть</span>
                       </span>
                     </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="hidden columns-2 gap-3 sm:block sm:columns-3 lg:columns-3">
-                {previewItems.map((item, idx) => (
-                  <motion.button
-                    key={item.src}
-                    type="button"
-                    {...reveal(idx)}
-                    whileHover={{ y: -4, scale: 1.01 }}
-                    className="group relative mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-[#dac792]/58 bg-[rgba(14,31,19,.58)] text-left shadow-[0_8px_22px_rgba(0,0,0,.28)]"
-                    onClick={() => openBySrc(item.src)}
-                    aria-label={`Открыть ${item.alt}`}
-                  >
-                    <Image
-                      src={item.src}
-                      alt={item.alt}
-                      width={item.width}
-                      height={item.height}
-                      priority={idx < 3}
-                      unoptimized
-                      placeholder="blur"
-                      blurDataURL={galleryImageBlurDataUrl}
-                      sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 46vw"
-                      className="block h-auto w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                    />
-                    <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-[rgba(6,14,9,.92)] via-[rgba(6,14,9,.42)] to-transparent px-3 py-3 sm:px-4">
-                      <span className="rounded-full border border-[#dcc892]/30 bg-[rgba(8,16,11,.55)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f0e4bf]">
-                        Фото {idx + 1}
-                      </span>
-                      <span className="text-xs font-semibold text-[#f6edd7]">Смотреть</span>
-                    </span>
                   </motion.button>
                 ))}
               </div>
 
               <div className="mt-4 sm:hidden">
-                <button
-                  type="button"
-                  className="btn-forest min-h-[44px] w-full"
-                  onClick={() => setActiveIndex(0)}
-                >
+                <button type="button" className="btn-forest min-h-[44px] w-full" onClick={() => setActiveIndex(0)}>
                   Открыть все фото
                 </button>
               </div>
@@ -190,11 +150,7 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
           </div>
 
           <div className="mt-6 hidden justify-center sm:flex">
-            <button
-              type="button"
-              className="btn-forest min-h-[44px] sm:min-w-52"
-              onClick={() => setActiveIndex(0)}
-            >
+            <button type="button" className="btn-forest min-h-[44px] sm:min-w-52" onClick={() => setActiveIndex(0)}>
               Открыть все фото
             </button>
           </div>

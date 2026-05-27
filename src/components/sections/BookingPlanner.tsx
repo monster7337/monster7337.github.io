@@ -2,32 +2,39 @@
 
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+import { CalendarDays, Check, CircleAlert, Clock3, CreditCard, Info, Minus, Phone, Plus, ShoppingBag } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import {
-  CalendarDays,
-  Check,
-  CircleAlert,
-  Clock3,
-  Copy,
-  Info,
-  Minus,
-  Phone,
-  Plus,
-  Send,
-  ShoppingBag,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import { BOOKING_CONTACTS, BOOKING_EXTRAS, BOOKING_TICKETS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
-import { BOOKING_TIMES, DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
+  defaultSettings,
+  FIXED_SLOT_TIMES,
+  getSlotCapacityState,
+  isHappyHourEnabled,
+  readStoredAppointments,
+  readStoredSettings,
+  savePublicBooking,
+} from "@/components/admin/admin-data";
+import { BOOKING_CONTACTS, BOOKING_TICKETS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
+import { DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
 
-const bookingSteps = ["Билеты", "Дата", "Время", "Услуги", "Контакты", "Подтверждение"];
+const BOOKING_PREPAYMENT_PER_GUEST = 500;
+const bookingSteps = ["Билеты", "Дата", "Время", "Контакты", "Подтверждение"];
 const bookingStepNotes = [
-  "Соберите состав визита",
-  "Выберите день посещения",
-  "Только нечетные слоты по 1 часу",
-  "Добавьте кормление и угощения",
-  "Оставьте имя и телефон",
-  "Проверьте детали перед отправкой",
+  "Выберите билеты на посещение",
+  "Найдите удобный день визита",
+  "Выберите подходящий слот",
+  "Оставьте телефон для связи",
+  "Проверьте предоплату и детали",
 ];
+
+const tariffMap: Record<BookingTicketId, string> = {
+  standard: "Обычный билет",
+  family: "Семейный билет",
+  social: "Льготный билет",
+  "happy-hour": "Счастливый час",
+};
+
+const selectableTickets = BOOKING_TICKETS.filter((ticket) => ticket.id !== "happy-hour");
 
 type BookingPlannerProps = {
   initialTicketId?: BookingTicketId;
@@ -36,9 +43,15 @@ type BookingPlannerProps = {
 };
 
 type ContactValues = {
-  name: string;
   phone: string;
   comment: string;
+};
+
+type SelectedTicket = (typeof BOOKING_TICKETS)[number] & {
+  quantity: number;
+  originalPrice: number;
+  effectiveTariffId: BookingTicketId;
+  hasHappyHourDiscount: boolean;
 };
 
 function getTicketWord(count: number) {
@@ -47,76 +60,216 @@ function getTicketWord(count: number) {
   return "билетов";
 }
 
+function getStorageSnapshot() {
+  return {
+    appointments: readStoredAppointments(),
+    settings: readStoredSettings() ?? defaultSettings,
+  };
+}
+
+function SummaryRows({
+  selectedTickets,
+  selectedDateLabel,
+  selectedTimeLabel,
+  totalTicketsCount,
+  total,
+  prepaymentNow,
+  remainingOnSite,
+  happyHourDiscountAmount,
+}: {
+  selectedTickets: SelectedTicket[];
+  selectedDateLabel: string;
+  selectedTimeLabel: string;
+  totalTicketsCount: number;
+  total: number;
+  prepaymentNow: number;
+  remainingOnSite: number;
+  happyHourDiscountAmount: number;
+}) {
+  return (
+    <>
+      <div className="summary-group">
+        <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
+          <ShoppingBag size={15} />
+          Билеты
+        </span>
+        <div className="mt-3 space-y-2">
+          {selectedTickets.length ? (
+            selectedTickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                className="flex items-start justify-between gap-3 rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5"
+              >
+                <div className="text-[0.84rem] leading-[1.35] text-[#efe4c8]/86">
+                  <div>
+                    {ticket.mobileName} x{ticket.quantity}
+                  </div>
+                  {ticket.hasHappyHourDiscount ? <div className="mt-1 text-[0.72rem] text-[#dbe8be]">цена счастливого часа</div> : null}
+                </div>
+                <strong className="shrink-0 text-[0.84rem] text-[#f7efdc]">{formatCurrency(ticket.price * ticket.quantity)}</strong>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5 text-[0.84rem] text-[#efe4c8]/72">
+              Пока ничего не выбрано
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="summary-group">
+        <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
+          <CalendarDays size={15} />
+          Детали визита
+        </span>
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
+            <span className="text-[0.84rem] text-[#efe4c8]/72">Дата</span>
+            <strong className="text-[0.84rem] text-[#f7efdc]">{selectedDateLabel}</strong>
+          </div>
+          <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
+            <span className="text-[0.84rem] text-[#efe4c8]/72">Время</span>
+            <strong className="text-[0.84rem] text-[#f7efdc]">{selectedTimeLabel}</strong>
+          </div>
+          <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
+            <span className="text-[0.84rem] text-[#efe4c8]/72">Мест</span>
+            <strong className="text-[0.84rem] text-[#f7efdc]">{totalTicketsCount}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-[24px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] p-4">
+        <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
+          <CreditCard size={15} />
+          Оплата
+        </span>
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
+            <span>Полная стоимость</span>
+            <strong className="text-[#f7efdc]">{formatCurrency(total)}</strong>
+          </div>
+          {happyHourDiscountAmount > 0 ? (
+            <div className="flex items-center justify-between text-[0.88rem] text-[#dbe8be]">
+              <span>Скидка счастливого часа</span>
+              <strong>-{formatCurrency(happyHourDiscountAmount)}</strong>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
+            <span>Предоплата сейчас</span>
+            <strong className="text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
+          </div>
+          <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
+            <span>Остаток на месте</span>
+            <strong className="text-[#f7efdc]">{formatCurrency(remainingOnSite)}</strong>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function BookingPlanner({ initialTicketId, initialDateId, initialTime }: BookingPlannerProps) {
+  const router = useRouter();
   const dateOptions = useMemo(() => getBookingDateOptions(), []);
   const initialResolvedDateId = dateOptions.some((item) => item.id === initialDateId) ? initialDateId : dateOptions[0]?.id ?? "";
-  const initialResolvedTime =
-    initialTime && BOOKING_TIMES.includes(initialTime as (typeof BOOKING_TIMES)[number]) ? initialTime : DEFAULT_BOOKING_TIME;
+  const initialResolvedTime = initialTime && FIXED_SLOT_TIMES.includes(initialTime) ? initialTime : DEFAULT_BOOKING_TIME;
+  const normalizedInitialTicketId = initialTicketId === "happy-hour" ? "standard" : initialTicketId;
 
   const [step, setStep] = useState(0);
   const [selectedDateId, setSelectedDateId] = useState(initialResolvedDateId);
   const [selectedTime, setSelectedTime] = useState(initialResolvedTime);
   const [selectedRateQuantities, setSelectedRateQuantities] = useState<Partial<Record<BookingTicketId, number>>>(() => {
-    if (!initialTicketId) return {};
-    return { [initialTicketId]: initialTicketId === "family" ? 3 : 1 };
+    if (!normalizedInitialTicketId) return {};
+    return { [normalizedInitialTicketId]: normalizedInitialTicketId === "family" ? 3 : 1 };
   });
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
-  const [activeInfoRateId, setActiveInfoRateId] = useState<BookingTicketId | null>(initialTicketId ?? null);
-  const [contactValues, setContactValues] = useState<ContactValues>({ name: "", phone: "", comment: "" });
+  const [activeInfoRateId, setActiveInfoRateId] = useState<BookingTicketId | null>(normalizedInitialTicketId ?? null);
+  const [contactValues, setContactValues] = useState<ContactValues>({ phone: "", comment: "" });
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ContactValues, string>>>({});
   const [stepError, setStepError] = useState("");
-  const [submitTone, setSubmitTone] = useState<"idle" | "success" | "warning">("idle");
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [storageSnapshot, setStorageSnapshot] = useState(getStorageSnapshot);
 
   const selectedDate = dateOptions.find((item) => item.id === selectedDateId) ?? null;
-  const happyHourSelected = (selectedRateQuantities["happy-hour"] ?? 0) > 0;
   const familyCount = selectedRateQuantities.family ?? 0;
+  const happyHourRate = BOOKING_TICKETS.find((ticket) => ticket.id === "happy-hour");
+  const selectedDateKey = selectedDate?.id ?? "";
+  const happyHourDiscountActive = isHappyHourEnabled(storageSnapshot.settings, selectedDateKey, selectedTime);
 
-  const timeSlots = BOOKING_TIMES.map((time) => {
-    const disabled = happyHourSelected && (time !== "11:00" || selectedDate?.isWeekend);
+  useEffect(() => {
+    const syncStorage = () => setStorageSnapshot(getStorageSnapshot());
+    window.addEventListener("storage", syncStorage);
+    return () => window.removeEventListener("storage", syncStorage);
+  }, []);
 
-    return {
-      time,
-      disabled,
-      status: disabled ? (selectedDate?.isWeekend ? "Только будни" : "Недоступно") : "Свободно",
-    };
-  });
+  const selectedTickets = useMemo<SelectedTicket[]>(
+    () =>
+      selectableTickets
+        .map((ticket) => {
+          const quantity = selectedRateQuantities[ticket.id] ?? 0;
+          const hasHappyHourDiscount = Boolean(happyHourDiscountActive && happyHourRate && ticket.id === "standard");
+          const effectivePrice = hasHappyHourDiscount && happyHourRate ? happyHourRate.price : ticket.price;
 
-  const selectedTickets = BOOKING_TICKETS.map((ticket) => ({
-    ...ticket,
-    quantity: selectedRateQuantities[ticket.id] ?? 0,
-  })).filter((ticket) => ticket.quantity > 0);
+          return {
+            ...ticket,
+            quantity,
+            price: effectivePrice,
+            originalPrice: ticket.price,
+            effectiveTariffId: hasHappyHourDiscount ? "happy-hour" : ticket.id,
+            hasHappyHourDiscount,
+          };
+        })
+        .filter((ticket) => ticket.quantity > 0),
+    [happyHourDiscountActive, happyHourRate, selectedRateQuantities]
+  );
 
-  const selectedServices = BOOKING_EXTRAS.filter((service) => selectedServiceIds.includes(service.id));
-
-  const ticketsTotal = selectedTickets.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const servicesTotal = selectedServices.reduce((sum, item) => sum + item.price, 0);
   const totalTicketsCount = selectedTickets.reduce((sum, item) => sum + item.quantity, 0);
-  const total = ticketsTotal + servicesTotal;
+  const ticketsTotal = selectedTickets.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const happyHourDiscountAmount = selectedTickets.reduce(
+    (sum, item) => sum + (item.hasHappyHourDiscount ? (item.originalPrice - item.price) * item.quantity : 0),
+    0
+  );
+
+  const timeSlots = useMemo(() => {
+    if (!selectedDate) {
+      return [];
+    }
+
+    return FIXED_SLOT_TIMES.map((time) => {
+      const state = getSlotCapacityState(storageSnapshot.appointments, storageSnapshot.settings, selectedDate.id, time);
+      const disabled = state.remainingGuests < Math.max(1, totalTicketsCount);
+
+      return {
+        time,
+        disabled,
+        remainingGuests: state.remainingGuests,
+        totalCapacity: state.totalCapacity,
+        isHappyHour: isHappyHourEnabled(storageSnapshot.settings, selectedDate.id, time),
+      };
+    });
+  }, [selectedDate, storageSnapshot.appointments, storageSnapshot.settings, totalTicketsCount]);
+
+  useEffect(() => {
+    if (!selectedDate || !selectedTime) {
+      return;
+    }
+
+    const state = getSlotCapacityState(storageSnapshot.appointments, storageSnapshot.settings, selectedDate.id, selectedTime);
+    if (state.remainingGuests < Math.max(1, totalTicketsCount)) {
+      setSelectedTime("");
+    }
+  }, [selectedDate, selectedTime, storageSnapshot.appointments, storageSnapshot.settings, totalTicketsCount]);
+
+  const total = ticketsTotal;
+  const prepaymentNow = totalTicketsCount * BOOKING_PREPAYMENT_PER_GUEST;
+  const remainingOnSite = Math.max(total - prepaymentNow, 0);
   const selectedDateLabel = selectedDate ? selectedDate.label : "Выберите дату";
   const selectedTimeLabel = selectedTime || "Выберите время";
   const mobileSelectionNote =
     totalTicketsCount > 0
-      ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} · ${selectedDate ? selectedDate.dayLabel : "без даты"}`
+      ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} · предоплата ${formatCurrency(prepaymentNow)}`
       : "Соберите визит по шагам";
-
-  const bookingText = [
-    "Заявка в антикафе В Ёлках",
-    `Билеты: ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ") || "не выбраны"}`,
-    `Дата: ${selectedDate ? selectedDate.label : "не выбрана"}`,
-    `Время: ${selectedTime || "не выбрано"}`,
-    "Длительность: 1 час",
-    `Услуги: ${selectedServices.length ? selectedServices.map((item) => item.title).join(", ") : "без доп. услуг"}`,
-    `Итог: ${formatCurrency(total)}`,
-    `Имя: ${contactValues.name || "не указано"}`,
-    `Телефон: ${contactValues.phone || "не указан"}`,
-    contactValues.comment ? `Комментарий: ${contactValues.comment}` : "Комментарий: без комментария",
-  ].join("\n");
 
   function resetStatuses() {
     setStepError("");
-    setSubmitTone("idle");
-    setSubmitMessage("");
   }
 
   function updateTicketQuantity(id: BookingTicketId, delta: number) {
@@ -135,11 +288,6 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     });
   }
 
-  function toggleServiceSelection(id: string) {
-    resetStatuses();
-    setSelectedServiceIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
-  }
-
   function updateContactField(field: keyof ContactValues, value: string) {
     resetStatuses();
     setContactValues((current) => ({ ...current, [field]: value }));
@@ -155,31 +303,16 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   function validateContacts() {
     const nextErrors: Partial<Record<keyof ContactValues, string>> = {};
 
-    if (contactValues.name.trim().length < 2) nextErrors.name = "Введите имя";
-    if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) nextErrors.phone = "Укажите телефон корректно";
-    if (contactValues.comment.trim().length > 280) nextErrors.comment = "Комментарий должен быть короче 280 символов";
+    if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) {
+      nextErrors.phone = "Укажите телефон корректно";
+    }
+
+    if (contactValues.comment.trim().length > 280) {
+      nextErrors.comment = "Комментарий должен быть короче 280 символов";
+    }
 
     setFieldErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
-  }
-
-  async function copyBookingText() {
-    try {
-      await navigator.clipboard.writeText(bookingText);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async function handleCopyBookingText() {
-    const copied = await copyBookingText();
-    setSubmitTone(copied ? "success" : "warning");
-    setSubmitMessage(
-      copied
-        ? "Детали визита скопированы. Их можно сразу отправить администратору."
-        : "Автокопирование не сработало. При необходимости скопируйте детали вручную из блока подтверждения."
-    );
   }
 
   async function finalizeBooking() {
@@ -197,12 +330,6 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       return;
     }
 
-    if (happyHourSelected && selectedDate.isWeekend) {
-      setStep(1);
-      setStepError('Тариф "Счастливый час" доступен только по будням. Выберите будний день или снимите этот тариф.');
-      return;
-    }
-
     if (!selectedTime || timeSlots.find((slot) => slot.time === selectedTime)?.disabled) {
       setStep(2);
       setStepError("Выберите доступное время.");
@@ -216,19 +343,46 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     }
 
     if (!validateContacts()) {
-      setStep(4);
-      setStepError("Проверьте имя и телефон перед отправкой заявки.");
+      setStep(3);
+      setStepError("Проверьте телефон перед отправкой заявки.");
       return;
     }
 
-    const copied = await copyBookingText();
-    window.open(BOOKING_CONTACTS.telegramHref, "_blank", "noopener,noreferrer");
-    setSubmitTone(copied ? "success" : "warning");
-    setSubmitMessage(
-      copied
-        ? "Telegram открыт, а детали визита уже в буфере обмена. Просто вставьте их в сообщение и отправьте."
-        : "Telegram открыт. Если детали не скопировались автоматически, перенесите их из блока подтверждения вручную."
+    const guestTickets = selectedTickets.flatMap((item) =>
+      Array.from({ length: item.quantity }, () => ({
+        tariff: tariffMap[item.effectiveTariffId],
+      }))
     );
+
+    try {
+      const appointment = savePublicBooking({
+        clientName: contactValues.phone,
+        phone: contactValues.phone,
+        email: "",
+        date: selectedDate.id,
+        time: selectedTime,
+        guestTickets,
+        selectedExtras: [],
+        comment: contactValues.comment,
+      });
+
+      const params = new URLSearchParams({
+        bookingId: appointment.id,
+        items: selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", "),
+        date: selectedDateLabel,
+        time: selectedTimeLabel,
+        tickets: String(totalTicketsCount),
+        total: formatCurrency(total),
+        prepayment: formatCurrency(appointment.prepaymentAmount),
+        remaining: formatCurrency(appointment.remainingAmount),
+        phone: contactValues.phone,
+      });
+
+      router.push(`/booking/success?${params.toString()}`);
+    } catch (error) {
+      setStep(2);
+      setStepError(error instanceof Error ? error.message : "Не удалось сохранить запись.");
+    }
   }
 
   function goToStep(nextStep: number) {
@@ -251,16 +405,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       }
     }
 
-    if (step === 1) {
-      if (!selectedDate) {
-        setStepError("Выберите дату визита.");
-        return;
-      }
-
-      if (happyHourSelected && selectedDate.isWeekend) {
-        setStepError('Тариф "Счастливый час" доступен только по будням.');
-        return;
-      }
+    if (step === 1 && !selectedDate) {
+      setStepError("Выберите дату визита.");
+      return;
     }
 
     if (step === 2 && (!selectedTime || timeSlots.find((slot) => slot.time === selectedTime)?.disabled)) {
@@ -268,7 +415,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       return;
     }
 
-    if (step === 4 && !validateContacts()) {
+    if (step === 3 && !validateContacts()) {
       setStepError("Проверьте контактные данные перед продолжением.");
       return;
     }
@@ -279,555 +426,446 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   return (
     <section
       id="booking"
-      className="forest-section scroll-mt-24 py-14 sm:py-16"
+      className="forest-section scroll-mt-24 py-10 pb-32 sm:py-12 sm:pb-36 lg:py-14 lg:pb-14"
       style={{ backgroundImage: "url('/bg/grass2.png')" }}
     >
-      <div className="forest-overlay bg-[rgba(8,18,11,.66)]" />
+      <div className="forest-overlay bg-[rgba(8,18,11,.72)]" />
 
       <div className="container-x section-content">
-        <div className="max-w-3xl">
-          <h2 className="section-title text-[1.95rem] sm:text-[2.35rem]">Онлайн-запись</h2>
-          <p className="mt-2 text-[0.92rem] leading-relaxed text-[#efe4c8]/86 sm:text-base">
-            <span className="sm:hidden">Соберите визит по шагам: билет, дата, слот, услуги и контакты. Все сеансы идут 1 час.</span>
-            <span className="hidden sm:inline">Конфигуратор визита: сначала билет, потом дата, слот и допуслуги. Все сеансы идут ровно 1 час, а запись доступна только на 11:00, 13:00, 15:00, 17:00 и 19:00.</span>
-          </p>
-        </div>
-
-        <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
-          <div className="min-w-0">
-            <div className="forest-card mb-4 p-3.5 xl:hidden sm:p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Бронирование</div>
-                  <div className="mt-1 text-[1.12rem] font-black text-[#f6efdb]">{bookingSteps[step]}</div>
-                  <p className="mt-1 text-[0.82rem] leading-[1.4] text-[#efe4c8]/82">{bookingStepNotes[step]}</p>
+        <div className="mx-auto max-w-[1160px]">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+            <div className="mx-auto w-full max-w-[780px] lg:max-w-none">
+              <div className="forest-card p-4 lg:hidden">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Бронирование</div>
+                    <div className="mt-1 text-[1.08rem] font-black text-[#f6efdb]">{bookingSteps[step]}</div>
+                    <p className="mt-1 text-[0.82rem] leading-[1.42] text-[#efe4c8]/82">{bookingStepNotes[step]}</p>
+                  </div>
+                  <div className="rounded-full border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-3 py-1 text-[0.72rem] font-bold text-[#f6efdb]">
+                    {step + 1} / {bookingSteps.length}
+                  </div>
                 </div>
-                <div className="rounded-full border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-3 py-1 text-[0.72rem] font-bold text-[#f6efdb]">
-                  {step + 1} / {bookingSteps.length}
+
+                <div className="mt-4 grid grid-cols-2 gap-2.5">
+                  <div className="rounded-[18px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] px-3 py-3">
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Билеты</div>
+                    <div className="mt-1 text-[0.95rem] font-bold text-[#f6efdb]">{totalTicketsCount || 0}</div>
+                  </div>
+                  <div className="rounded-[18px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] px-3 py-3">
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Дата</div>
+                    <div className="mt-1 text-[0.9rem] font-bold leading-[1.2] text-[#f6efdb]">{selectedDate?.dayLabel ?? "Выберите"}</div>
+                  </div>
+                  <div className="rounded-[18px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] px-3 py-3">
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Время</div>
+                    <div className="mt-1 text-[0.9rem] font-bold text-[#f6efdb]">{selectedTimeLabel}</div>
+                  </div>
+                  <div className="rounded-[18px] border border-[#a7c873]/45 bg-[linear-gradient(180deg,rgba(122,166,74,.22)_0%,rgba(78,113,45,.18)_100%)] px-3 py-3">
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#dbe8be]">Сейчас</div>
+                    <div className="mt-1 text-[0.95rem] font-black text-[#f6efdb]">{formatCurrency(prepaymentNow)}</div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div className="rounded-[20px] border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-3 py-2.5">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Билеты</div>
-                  <div className="mt-1 text-[0.95rem] font-bold text-[#f6efdb]">{totalTicketsCount || 0}</div>
-                </div>
-                <div className="rounded-[20px] border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-3 py-2.5">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Итог</div>
-                  <div className="mt-1 text-[0.95rem] font-bold text-[#f6efdb]">{formatCurrency(total)}</div>
-                </div>
-                <div className="rounded-[20px] border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-3 py-2.5">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Дата</div>
-                  <div className="mt-1 text-[0.9rem] font-bold leading-[1.2] text-[#f6efdb]">{selectedDate?.dayLabel ?? "Выберите"}</div>
-                </div>
-                <div className="rounded-[20px] border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-3 py-2.5">
-                  <div className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Время</div>
-                  <div className="mt-1 text-[0.95rem] font-bold text-[#f6efdb]">{selectedTimeLabel}</div>
-                </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap lg:mt-0">
+                {bookingSteps.map((item, index) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={clsx(
+                      "rounded-[18px] border px-2.5 py-2.5 text-left text-[0.72rem] font-semibold transition sm:min-w-[110px] sm:px-3 sm:text-sm",
+                      index === step
+                        ? "border-[#a7c873] bg-[linear-gradient(180deg,#80a754_0%,#587736_100%)] text-[#f7f3e3]"
+                        : index < step
+                          ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.08)] text-[#f6efdb]"
+                          : "border-[#ccb886]/50 bg-[rgba(16,34,20,.56)] text-[#efe3c8]"
+                    )}
+                    onClick={() => goToStep(index)}
+                  >
+                    <span className="mb-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-current/35 text-[0.68rem]">
+                      {index < step ? <Check size={12} /> : index + 1}
+                    </span>
+                    <div className="leading-[1.15]">{item}</div>
+                  </button>
+                ))}
               </div>
-            </div>
 
-            <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-              {bookingSteps.map((item, index) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={clsx(
-                    "min-w-max rounded-full border px-3 py-2 text-left text-[0.78rem] font-semibold transition sm:text-sm",
-                    index === step
-                      ? "border-[#a7c873] bg-[linear-gradient(180deg,#80a754_0%,#587736_100%)] text-[#f7f3e3]"
-                      : index < step
-                        ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.08)] text-[#f6efdb]"
-                        : "border-[#ccb886]/50 bg-[rgba(16,34,20,.56)] text-[#efe3c8]"
-                  )}
-                  onClick={() => goToStep(index)}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.22 }}
+                  className="forest-card mt-4 overflow-hidden p-4 sm:p-5 lg:p-6"
                 >
-                  <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-current/35 text-[0.72rem]">
-                    {index < step ? <Check size={13} /> : index + 1}
-                  </span>
-                  {item}
-                </button>
-              ))}
-            </div>
+                  <div className="border-b border-[#d6c388]/16 pb-4">
+                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг {step + 1}</div>
+                    <h3 className="mt-2 text-[1.28rem] font-black text-[#f6efdb] sm:text-[1.75rem]">{bookingSteps[step]}</h3>
+                    <p className="mt-2 max-w-2xl text-[0.84rem] leading-[1.45] text-[#efe4c8]/82 sm:text-[0.95rem]">{bookingStepNotes[step]}</p>
+                  </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.22 }}
-                className="forest-card overflow-hidden p-3.5 sm:p-5"
-              >
-                <div className="flex flex-col gap-2 border-b border-[#d6c388]/16 pb-4">
-                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг {step + 1}</div>
-                  <h3 className="text-[1.28rem] font-black text-[#f6efdb] sm:text-[1.75rem]">{bookingSteps[step]}</h3>
-                  <p className="max-w-2xl text-[0.82rem] leading-[1.45] text-[#efe4c8]/82 sm:text-[0.95rem]">{bookingStepNotes[step]}</p>
-                </div>
+                  {step === 0 ? (
+                    <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
+                      {selectableTickets.map((ticket) => {
+                        const quantity = selectedRateQuantities[ticket.id] ?? 0;
+                        const infoOpen = activeInfoRateId === ticket.id;
 
-                {step === 0 ? (
-                  <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-2">
-                    {BOOKING_TICKETS.map((ticket) => {
-                      const quantity = selectedRateQuantities[ticket.id] ?? 0;
-                      const infoOpen = activeInfoRateId === ticket.id;
-
-                      return (
-                        <article
-                          key={ticket.id}
-                          className={clsx(
-                            "flex h-full flex-col rounded-[22px] border p-3 shadow-[0_12px_28px_rgba(0,0,0,.22)] transition sm:rounded-[24px] sm:p-5",
-                            quantity > 0
-                              ? "border-[#d9c891]/75 bg-[rgba(24,47,29,.9)]"
-                              : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <strong className="text-[0.98rem] text-[#f6efdb] sm:text-[1.45rem]">
-                                  {formatCurrency(ticket.price)}
-                                  <span className="text-[0.74em]"> / ч</span>
-                                </strong>
+                        return (
+                          <article
+                            key={ticket.id}
+                            className={clsx(
+                              "flex h-full flex-col rounded-[22px] border p-3 shadow-[0_14px_30px_rgba(0,0,0,.2)] transition sm:rounded-[24px] sm:p-5",
+                              quantity > 0
+                                ? "border-[#d9c891]/72 bg-[rgba(24,47,29,.92)]"
+                                : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
+                            )}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-[0.94rem] font-black text-[#f7efdc] sm:text-[1.2rem]">{formatCurrency(ticket.price)}</div>
                                 {ticket.oldPrice ? (
-                                  <span className="text-[0.68rem] text-[#d9ccb0]/65 line-through sm:text-sm">{formatCurrency(ticket.oldPrice)}</span>
-                                ) : null}
-                                {ticket.discount ? (
-                                  <span className="rounded-full bg-[#ff5d5d] px-2 py-0.5 text-[0.58rem] font-bold text-white sm:text-[0.72rem]">
-                                    {ticket.discount}
-                                  </span>
+                                  <div className="mt-1 flex items-center gap-2">
+                                    <span className="text-[0.68rem] text-[#efe4c8]/55 line-through sm:text-[0.76rem]">{formatCurrency(ticket.oldPrice)}</span>
+                                    {ticket.discount ? (
+                                      <span className="rounded-full border border-[#d9c891]/35 bg-[rgba(255,255,255,.08)] px-1.5 py-0.5 text-[0.58rem] font-bold text-[#f0e4c5] sm:px-2 sm:text-[0.65rem]">
+                                        {ticket.discount}
+                                      </span>
+                                    ) : null}
+                                  </div>
                                 ) : null}
                               </div>
-                              {ticket.note ? (
-                                <div className="mt-2 inline-flex rounded-full border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-2 py-1 text-[0.58rem] font-semibold tracking-[0.04em] text-[#f1e7cd] sm:px-2.5 sm:text-[0.72rem]">
-                                  {ticket.note}
-                                </div>
-                              ) : null}
-                            </div>
-
-                            <button
-                              type="button"
-                              className={clsx(
-                                "inline-flex h-8 w-8 items-center justify-center rounded-full border text-[#f5edd9] transition sm:h-9 sm:w-9",
-                                infoOpen ? "border-[#d9c891]/70 bg-[rgba(255,255,255,.12)]" : "border-[#d6c388]/24 bg-[rgba(255,255,255,.04)]"
-                              )}
-                              aria-label={`Подробнее о тарифе ${ticket.name}`}
-                              onClick={() => setActiveInfoRateId(infoOpen ? null : ticket.id)}
-                            >
-                              <Info size={16} />
-                            </button>
-                          </div>
-
-                          <h4 className="mt-3 text-[0.96rem] font-black leading-[1.12] text-[#f7f0df] sm:text-[1.18rem]">
-                            <span className="sm:hidden">{ticket.mobileName}</span>
-                            <span className="hidden sm:inline">{ticket.name}</span>
-                          </h4>
-
-                          <p className="mt-1.5 text-[0.74rem] leading-[1.35] text-[#efe4c8]/86 sm:mt-2 sm:text-[0.92rem] sm:leading-[1.45]">
-                            <span className="sm:hidden">{ticket.mobileDescription}</span>
-                            <span className="hidden sm:inline">{ticket.description}</span>
-                          </p>
-
-                          {infoOpen ? (
-                            <div className="mt-3 rounded-2xl border border-[#d6c388]/24 bg-[rgba(8,18,11,.34)] px-3 py-3 text-[0.72rem] leading-[1.35] text-[#efe4c8]/82 sm:px-3.5 sm:text-[0.88rem] sm:leading-[1.45]">
-                              {ticket.details}
-                            </div>
-                          ) : null}
-
-                          <div className="mt-auto pt-3 sm:pt-4">
-                            <div className="hidden text-[0.82rem] text-[#e7dbc0]/78 sm:block">{ticket.location}</div>
-
-                            {quantity === 0 ? (
-                              <button type="button" className="btn-forest mt-0 min-h-[40px] w-full text-[0.78rem] sm:mt-3 sm:min-h-[42px] sm:w-auto sm:text-base" onClick={() => updateTicketQuantity(ticket.id, 1)}>
-                                Выбрать
+                              <button
+                                type="button"
+                                className={clsx(
+                                  "inline-flex h-8 w-8 items-center justify-center rounded-full border transition sm:h-9 sm:w-9",
+                                  infoOpen
+                                    ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.1)] text-[#f6efdb]"
+                                    : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#efe4c8]/82"
+                                )}
+                                onClick={() => setActiveInfoRateId(infoOpen ? null : ticket.id)}
+                                aria-label={`Подробнее о тарифе ${ticket.name}`}
+                              >
+                                <Info size={16} />
                               </button>
-                            ) : (
-                              <div className="mt-0 flex items-center justify-between gap-2 rounded-[18px] border border-[#d6c388]/35 bg-[rgba(255,255,255,.08)] px-2 py-2 sm:mt-3 sm:gap-3 sm:rounded-full sm:px-3">
+                            </div>
+
+                            {ticket.note ? (
+                              <span className="mt-2 inline-flex w-fit rounded-full border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] px-2 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.06em] text-[#e8d9b4] sm:mt-3 sm:px-2.5 sm:text-[0.66rem]">
+                                {ticket.note}
+                              </span>
+                            ) : null}
+
+                            <h4 className="mt-2 text-[0.82rem] font-black leading-[1.15] text-[#f7efdc] sm:mt-3 sm:text-[1.18rem]">
+                              <span className="sm:hidden">{ticket.mobileName}</span>
+                              <span className="hidden sm:inline">{ticket.name}</span>
+                            </h4>
+                            <p className="mt-1.5 text-[0.68rem] leading-[1.35] text-[#efe4c8]/86 sm:mt-2 sm:text-[0.92rem]">
+                              <span className="sm:hidden">{ticket.mobileDescription}</span>
+                              <span className="hidden sm:inline">{ticket.description}</span>
+                            </p>
+
+                            {infoOpen ? (
+                              <div className="mt-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(8,18,11,.3)] px-3 py-2.5 text-[0.7rem] leading-[1.35] text-[#efe4c8]/82 sm:px-3.5 sm:py-3 sm:text-[0.78rem] sm:leading-[1.45]">
+                                {ticket.details}
+                              </div>
+                            ) : null}
+
+                            <div className="mt-auto pt-3 sm:pt-4">
+                              {quantity === 0 ? (
                                 <button
                                   type="button"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#d6c388]/35 text-[#f6efdb] sm:h-8 sm:w-8"
-                                  onClick={() => updateTicketQuantity(ticket.id, -1)}
-                                >
-                                  <Minus size={14} />
-                                </button>
-                                <div className="text-center">
-                                  <div className="text-[0.55rem] uppercase tracking-[0.14em] text-[#e8d9b4] sm:text-[0.66rem]">Выбрано</div>
-                                  <strong className="text-[0.88rem] text-[#f6efdb] sm:text-[0.95rem]">{quantity}</strong>
-                                </div>
-                                <button
-                                  type="button"
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#d6c388]/35 text-[#f6efdb] sm:h-8 sm:w-8"
+                                  className={
+                                    ticket.button === "cream"
+                                      ? "btn-cream min-h-[40px] w-full text-[0.74rem] sm:min-h-[44px] sm:text-base"
+                                      : "btn-forest min-h-[40px] w-full text-[0.74rem] sm:min-h-[44px] sm:text-base"
+                                  }
                                   onClick={() => updateTicketQuantity(ticket.id, 1)}
                                 >
-                                  <Plus size={14} />
+                                  Выбрать билет
                                 </button>
-                              </div>
-                            )}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                ) : null}
+                              ) : (
+                                <div className="rounded-[18px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.06)] p-2.5 sm:rounded-[20px] sm:p-3">
+                                  <div className="text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-[#e8d9b4] sm:text-[0.72rem]">Выбрано</div>
+                                  <div className="mt-2 flex items-center justify-between gap-2">
+                                    <button
+                                      type="button"
+                                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f7efdc] sm:h-10 sm:w-10"
+                                      onClick={() => updateTicketQuantity(ticket.id, -1)}
+                                    >
+                                      <Minus size={14} />
+                                    </button>
+                                    <strong className="text-[0.84rem] text-[#f7efdc] sm:text-[0.92rem]">{quantity}</strong>
+                                    <button
+                                      type="button"
+                                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f7efdc] sm:h-10 sm:w-10"
+                                      onClick={() => updateTicketQuantity(ticket.id, 1)}
+                                    >
+                                      <Plus size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : null}
 
-                {step === 1 ? (
-                  <div className="mt-5">
-                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-5">
-                      {dateOptions.map((dateOption) => {
-                        const isSelected = dateOption.id === selectedDateId;
-                        const isDisabled = happyHourSelected && dateOption.isWeekend;
+                  {step === 1 ? (
+                    <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                      {dateOptions.map((date) => {
+                        const isSelected = selectedDateId === date.id;
 
                         return (
                           <button
-                            key={dateOption.id}
+                            key={date.id}
                             type="button"
                             className={clsx(
-                              "min-h-[112px] rounded-[20px] border px-3 py-3 text-left transition sm:min-h-[132px] sm:rounded-[22px] sm:px-4 sm:py-4",
+                              "aspect-square rounded-[18px] border p-2.5 text-left transition sm:rounded-[20px] sm:p-3.5",
                               isSelected
-                                ? "border-[#a7c873] bg-[linear-gradient(180deg,#80a754_0%,#587736_100%)] text-[#f7f3e3]"
-                                : "border-[#ccb886]/50 bg-[rgba(16,34,20,.56)] text-[#efe3c8]",
-                              isDisabled && "cursor-not-allowed opacity-60"
+                                ? "border-[#a7c873] bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(69,101,41,.22)_100%)]"
+                                : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
                             )}
-                            disabled={isDisabled}
-                            onClick={() => setSelectedDateId(dateOption.id)}
+                            onClick={() => setSelectedDateId(date.id)}
                           >
-                            <div className="text-[0.68rem] uppercase tracking-[0.16em] opacity-80 sm:text-[0.74rem]">{dateOption.weekdayLabel}</div>
-                            <strong className="mt-2 block text-[0.92rem] leading-[1.15] sm:text-[1.08rem]">{dateOption.dayLabel}</strong>
-                            <span className="mt-2 block text-[0.68rem] leading-[1.3] opacity-78 sm:text-[0.76rem]">{isDisabled ? "Не подходит" : "Свободно"}</span>
+                            <div className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#e8d9b4] sm:text-[0.7rem]">{date.weekdayLabel}</div>
+                            <div className="mt-2 text-[0.92rem] font-black leading-[1.1] text-[#f7efdc] sm:text-[1.02rem]">{date.dayLabel}</div>
+                            <p className="mt-1.5 text-[0.62rem] leading-[1.2] text-[#efe4c8]/74 sm:text-[0.7rem]">{date.compactLabel.replace("\n", " ")}</p>
+                            <div className="mt-2 text-[0.58rem] font-semibold leading-[1.2] text-[#dbe8be]">Свободно</div>
                           </button>
                         );
                       })}
                     </div>
+                  ) : null}
 
-                    {happyHourSelected ? (
-                      <div className="mt-4 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
-                        Тариф <strong className="text-[#f6efdb]">&quot;Счастливый час&quot;</strong> работает только по будням. Если нужен выходной день, уберите этот тариф на первом шаге.
+                  {step === 2 ? (
+                    <div className="mt-5">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+                        {timeSlots.map((slot) => (
+                          <button
+                            key={slot.time}
+                            type="button"
+                            className={clsx(
+                              "rounded-[22px] border p-4 text-left transition",
+                              selectedTime === slot.time
+                                ? "border-[#a7c873] bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(69,101,41,.22)_100%)]"
+                                : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]",
+                              slot.disabled && "cursor-not-allowed opacity-45"
+                            )}
+                            disabled={slot.disabled}
+                            onClick={() => setSelectedTime(slot.time)}
+                          >
+                            <div className="flex items-center gap-2 text-[#f7efdc]">
+                              <Clock3 size={16} />
+                              <strong className="text-[0.96rem]">{slot.time}</strong>
+                            </div>
+                            <div className="mt-2 text-[0.76rem] leading-[1.35] text-[#efe4c8]/78">
+                              {slot.disabled ? "Недостаточно мест" : `Свободно ${slot.remainingGuests}`}
+                            </div>
+                            {slot.isHappyHour ? (
+                              <div className="mt-2 inline-flex rounded-full border border-[#a7c873]/35 bg-[rgba(122,166,74,.16)] px-2 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.06em] text-[#dbe8be]">
+                                Счастливый час
+                              </div>
+                            ) : null}
+                          </button>
+                        ))}
                       </div>
-                    ) : null}
-                  </div>
-                ) : null}
 
-                {step === 2 ? (
-                  <div className="mt-5">
-                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-5">
-                      {timeSlots.map((slot) => (
-                        <button
-                          key={slot.time}
-                          type="button"
-                          className={clsx(
-                            "min-h-[112px] rounded-[20px] border px-3 py-3 text-left transition sm:min-h-[132px] sm:rounded-[22px] sm:px-4 sm:py-4",
-                            selectedTime === slot.time
-                              ? "border-[#a7c873] bg-[linear-gradient(180deg,#80a754_0%,#587736_100%)] text-[#f7f3e3]"
-                              : "border-[#ccb886]/50 bg-[rgba(16,34,20,.56)] text-[#efe3c8]",
-                            slot.disabled && "cursor-not-allowed opacity-60"
-                          )}
-                          disabled={slot.disabled}
-                          onClick={() => setSelectedTime(slot.time)}
-                        >
-                          <div className="flex items-center gap-2 text-[0.68rem] uppercase tracking-[0.16em] opacity-80 sm:text-[0.76rem]">
-                            <Clock3 size={14} />
-                            1 час
+                      {happyHourDiscountActive ? (
+                        <div className="mt-4 rounded-[22px] border border-[#8fad5e]/28 bg-[rgba(122,166,74,.12)] px-4 py-3 text-[0.83rem] leading-[1.45] text-[#edf6df]">
+                          На выбранное время сейчас действует счастливый час. Для стандартных билетов цена уже снижена автоматически.
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.83rem] leading-[1.45] text-[#efe4c8]/82">
+                        Все визиты проходят по фиксированным слотам: 11:00, 13:00, 15:00, 17:00 и 19:00. Длительность каждого визита 1 час.
+                        Метка счастливого часа появляется только на тех слотах, которые сейчас включены в админке на выбранную дату.
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {step === 3 ? (
+                    <div className="mt-5 grid gap-3">
+                      <label className="block">
+                        <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон</span>
+                        <input
+                          className="field-paper rounded-2xl px-4 py-3"
+                          placeholder="+7 (___) ___-__-__"
+                          value={contactValues.phone}
+                          onChange={(event) => updateContactField("phone", event.target.value)}
+                        />
+                        {fieldErrors.phone ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.phone}</span> : null}
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Комментарий</span>
+                        <textarea
+                          className="field-paper min-h-[108px] rounded-2xl px-4 py-3"
+                          placeholder="Например: будем с ребенком, нужен семейный тариф."
+                          value={contactValues.comment}
+                          onChange={(event) => updateContactField("comment", event.target.value)}
+                        />
+                        {fieldErrors.comment ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.comment}</span> : null}
+                      </label>
+
+                      <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
+                        После подтверждения запись сразу попадет в CRM. Администратор увидит выбранные тарифы, дату, слот, телефон и сумму предоплаты.
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {step === 4 ? (
+                    <div className="mt-5 space-y-4">
+                      <div className="rounded-[24px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] p-4 sm:p-5">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Билеты</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">
+                              {selectedTickets.length ? selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ") : "Не выбраны"}
+                            </strong>
                           </div>
-                          <strong className="mt-2 block text-[1.02rem] sm:text-[1.35rem]">{slot.time}</strong>
-                          <span className="mt-2 block text-[0.68rem] opacity-78 sm:text-[0.76rem]">{slot.status}</span>
+                          <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Дата</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedDateLabel}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Время</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedTimeLabel}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Телефон</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.phone || "Не указан"}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Длительность</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">1 час</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-[24px] border border-[#8fad5e]/38 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.2)_100%)] p-4 sm:p-5">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#cfe6a0]/35 bg-[rgba(255,255,255,.08)] text-[#f7efdc]">
+                            <CreditCard size={18} />
+                          </div>
+                          <div>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#dbe8be]">Оплата</div>
+                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">Предоплата 500 ₽ за каждое место</h4>
+                            <p className="mt-2 text-[0.88rem] leading-[1.5] text-[#edf6df]">
+                              На сайте оплачивается только предварительная оплата: {formatCurrency(BOOKING_PREPAYMENT_PER_GUEST)} за каждое место.
+                              Сейчас вы вносите {formatCurrency(prepaymentNow)}, остаток {formatCurrency(remainingOnSite)} оплачивается на месте.
+                            </p>
+                            {happyHourDiscountAmount > 0 ? (
+                              <p className="mt-2 text-[0.82rem] font-semibold leading-[1.45] text-[#dbe8be]">
+                                Скидка счастливого часа уже учтена: -{formatCurrency(happyHourDiscountAmount)}.
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {stepError ? (
+                    <p className="mt-4 flex items-start gap-2 rounded-2xl border border-[#8d5a5a]/55 bg-[rgba(95,23,23,.24)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#ffd6d6]">
+                      <CircleAlert size={18} className="mt-0.5 shrink-0" />
+                      <span>{stepError}</span>
+                    </p>
+                  ) : null}
+
+                  <div className="mt-5 hidden items-center justify-between gap-3 border-t border-[#d6c388]/16 pt-4 lg:flex">
+                    <div className="rounded-[20px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-4 py-3">
+                      <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас в заказе</div>
+                      <div className="mt-1 text-[0.86rem] font-bold text-[#f6efdb]">{mobileSelectionNote}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
+                        Назад
+                      </button>
+                      {step < bookingSteps.length - 1 ? (
+                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={() => goToStep(step + 1)}>
+                          Продолжить
                         </button>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
-                      Доступны только нечетные слоты: 11:00, 13:00, 15:00, 17:00 и 19:00. Каждый визит идет ровно 1 час.
-                    </div>
-                  </div>
-                ) : null}
-
-                {step === 3 ? (
-                  <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-2">
-                    {BOOKING_EXTRAS.map((service) => {
-                      const isSelected = selectedServiceIds.includes(service.id);
-
-                      return (
-                        <article
-                          key={service.id}
-                          className={clsx(
-                            "flex h-full flex-col rounded-[22px] border p-3 shadow-[0_12px_28px_rgba(0,0,0,.22)] transition sm:rounded-[24px] sm:p-5",
-                            isSelected
-                              ? "border-[#d9c891]/75 bg-[rgba(24,47,29,.9)]"
-                              : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
-                          )}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <strong className="text-[0.98rem] text-[#f6efdb] sm:text-[1.3rem]">{formatCurrency(service.price)}</strong>
-                            <span className="rounded-full border border-[#d6c388]/35 bg-[rgba(255,255,255,.06)] px-2 py-1 text-[0.58rem] font-semibold tracking-[0.04em] text-[#f1e7cd] sm:px-2.5 sm:text-[0.72rem]">
-                              {service.note}
-                            </span>
-                          </div>
-
-                          <h4 className="mt-3 text-[0.94rem] font-black leading-[1.12] text-[#f7f0df] sm:text-[1.18rem]">{service.title}</h4>
-                          <p className="mt-1.5 text-[0.74rem] leading-[1.35] text-[#efe4c8]/86 sm:mt-2 sm:text-[0.92rem] sm:leading-[1.45]">{service.description}</p>
-
-                          <div className="mt-auto pt-3 sm:pt-4">
-                            <button
-                              type="button"
-                              className={isSelected ? "btn-cream min-h-[40px] w-full text-[0.78rem] sm:min-h-[42px] sm:text-base" : "btn-forest min-h-[40px] w-full text-[0.78rem] sm:min-h-[42px] sm:text-base"}
-                              onClick={() => toggleServiceSelection(service.id)}
-                            >
-                              {isSelected ? "Убрать услугу" : "Добавить"}
-                            </button>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                ) : null}
-
-                {step === 4 ? (
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Имя</span>
-                      <input
-                        className="field-paper rounded-2xl px-4 py-3"
-                        placeholder="Как к вам обращаться"
-                        value={contactValues.name}
-                        onChange={(event) => updateContactField("name", event.target.value)}
-                      />
-                      {fieldErrors.name ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.name}</span> : null}
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон</span>
-                      <input
-                        className="field-paper rounded-2xl px-4 py-3"
-                        placeholder="+7 (___) ___-__-__"
-                        value={contactValues.phone}
-                        onChange={(event) => updateContactField("phone", event.target.value)}
-                      />
-                      {fieldErrors.phone ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.phone}</span> : null}
-                    </label>
-
-                    <label className="block sm:col-span-2">
-                      <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Комментарий</span>
-                      <textarea
-                        className="field-paper min-h-[96px] rounded-2xl px-4 py-3 sm:min-h-[120px]"
-                        placeholder="Например: будем с ребенком, хотим покормить животных, нужен семейный тариф."
-                        value={contactValues.comment}
-                        onChange={(event) => updateContactField("comment", event.target.value)}
-                      />
-                      {fieldErrors.comment ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.comment}</span> : null}
-                    </label>
-
-                    <div className="sm:col-span-2 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
-                      После подтверждения откроется Telegram, а вся собранная заявка скопируется в буфер обмена. Это самый быстрый способ довести бронь до администратора без отдельной CRM-интеграции.
-                    </div>
-                  </div>
-                ) : null}
-
-                {step === 5 ? (
-                  <div className="mt-5 space-y-4">
-                    <div className="rounded-[24px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] p-4 sm:p-5">
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Билеты</span>
-                          <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">
-                            {selectedTickets.length
-                              ? selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")
-                              : "Не выбраны"}
-                          </strong>
-                        </div>
-                        <div>
-                          <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Дата</span>
-                          <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedDateLabel}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Время</span>
-                          <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedTimeLabel}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Длительность</span>
-                          <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">1 час</strong>
-                        </div>
-                        <div>
-                          <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Услуги</span>
-                          <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">
-                            {selectedServices.length ? selectedServices.map((item) => item.title).join(", ") : "Без доп. услуг"}
-                          </strong>
-                        </div>
-                        <div>
-                          <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Контакты</span>
-                          <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">
-                            {contactValues.name || "Без имени"} · {contactValues.phone || "Без телефона"}
-                          </strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-[24px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] p-4 sm:p-5">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Черновик сообщения</div>
-                          <p className="mt-1 text-[0.82rem] leading-[1.45] text-[#efe4c8]/82">Можно скопировать заранее или сразу открыть Telegram с готовыми деталями визита.</p>
-                        </div>
-                        <button type="button" className="btn-cream min-h-[42px] sm:w-auto" onClick={handleCopyBookingText}>
-                          <Copy size={16} />
-                          <span className="ml-2">Скопировать</span>
+                      ) : (
+                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking}>
+                          Оплатить
                         </button>
-                      </div>
-
-                      <pre className="mt-4 overflow-x-auto rounded-2xl border border-[#d6c388]/16 bg-[rgba(8,18,11,.34)] p-4 text-[0.78rem] leading-[1.55] whitespace-pre-wrap text-[#f2ead7] sm:text-[0.84rem]">
-                        {bookingText}
-                      </pre>
+                      )}
                     </div>
                   </div>
-                ) : null}
+                </motion.div>
+              </AnimatePresence>
 
-                {stepError ? (
-                  <p className="mt-4 flex items-start gap-2 rounded-2xl border border-[#8d5a5a]/55 bg-[rgba(95,23,23,.24)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#ffd6d6]">
-                    <CircleAlert size={18} className="mt-0.5 shrink-0" />
-                    <span>{stepError}</span>
-                  </p>
-                ) : null}
-
-                {submitTone !== "idle" && submitMessage ? (
-                  <p
-                    className={clsx(
-                      "mt-4 flex items-start gap-2 rounded-2xl px-4 py-3 text-[0.84rem] leading-[1.45]",
-                      submitTone === "success"
-                        ? "border border-[#7ea85b]/55 bg-[rgba(60,98,42,.24)] text-[#edf8df]"
-                        : "border border-[#d6c388]/35 bg-[rgba(255,255,255,.08)] text-[#f6efdb]"
-                    )}
-                  >
-                    {submitTone === "success" ? <Check size={18} className="mt-0.5 shrink-0" /> : <Info size={18} className="mt-0.5 shrink-0" />}
-                    <span>{submitMessage}</span>
-                  </p>
-                ) : null}
-
-                <div className="mt-5 flex flex-col gap-3 border-t border-[#d6c388]/16 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="rounded-[20px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-3.5 py-3 sm:rounded-2xl sm:px-4">
-                    <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас в заказе</div>
-                    <div className="mt-1 text-[0.82rem] font-bold leading-[1.3] text-[#f6efdb] sm:text-[0.9rem]">{mobileSelectionNote}</div>
-                    <div className="mt-1 text-[1rem] font-black text-[#f6efdb] sm:text-[1.12rem]">{formatCurrency(total)}</div>
+              <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden">
+                <div className="mx-auto max-w-[780px] rounded-[26px] border border-[#d6c388]/28 bg-[rgba(12,25,15,.96)] p-3 shadow-[0_18px_40px_rgba(0,0,0,.35)] backdrop-blur-xl">
+                  <div className="mb-3 flex items-center justify-between gap-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
+                    <div>
+                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас</div>
+                      <div className="mt-1 text-[0.82rem] leading-[1.3] text-[#f6efdb]">{mobileSelectionNote}</div>
+                    </div>
+                    <strong className="shrink-0 text-[1rem] text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
-                    <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem] sm:text-base" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
                       Назад
                     </button>
 
                     {step < bookingSteps.length - 1 ? (
-                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem] sm:text-base" onClick={() => goToStep(step + 1)}>
+                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={() => goToStep(step + 1)}>
                         Продолжить
                       </button>
                     ) : (
-                      <button type="button" className="btn-forest col-span-2 min-h-[44px] px-3 text-[0.82rem] sm:col-auto sm:text-base" onClick={finalizeBooking}>
-                        <Send size={16} />
-                        <span className="ml-2">Открыть Telegram</span>
+                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking}>
+                        Оплатить
                       </button>
                     )}
                   </div>
                 </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <aside className="hidden xl:block xl:sticky xl:top-24">
-            <div className="forest-card p-5">
-              <div className="border-b border-[#d6c388]/16 pb-4">
-                <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Ваш визит</div>
-                <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Итог заказа</h3>
-                <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">
-                  Sticky-сводка: билеты, дата, время, услуги и финальная сумма всегда под рукой.
-                </p>
-              </div>
-
-              <div className="mt-5 space-y-5">
-                <div>
-                  <div className="flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.14em] text-[#e8d9b4]">
-                    <ShoppingBag size={15} /> Билеты
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {selectedTickets.length ? (
-                      selectedTickets.map((ticket) => (
-                        <div key={ticket.id} className="flex items-start justify-between gap-3 rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5">
-                          <span className="text-[0.84rem] leading-[1.4] text-[#efe4c8]/84">
-                            {ticket.mobileName} x{ticket.quantity}
-                          </span>
-                          <strong className="shrink-0 text-[0.84rem] text-[#f6efdb]">{formatCurrency(ticket.price * ticket.quantity)}</strong>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5 text-[0.84rem] text-[#efe4c8]/72">
-                        Пока ничего не выбрано
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.14em] text-[#e8d9b4]">
-                    <CalendarDays size={15} /> Детали визита
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-between rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5">
-                      <span className="text-[0.84rem] text-[#efe4c8]/72">Дата</span>
-                      <strong className="text-[0.84rem] text-[#f6efdb]">{selectedDate?.dayLabel ?? "Выберите"}</strong>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5">
-                      <span className="text-[0.84rem] text-[#efe4c8]/72">Время</span>
-                      <strong className="text-[0.84rem] text-[#f6efdb]">{selectedTimeLabel}</strong>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5">
-                      <span className="text-[0.84rem] text-[#efe4c8]/72">Длительность</span>
-                      <strong className="text-[0.84rem] text-[#f6efdb]">1 час</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 text-[0.8rem] font-semibold uppercase tracking-[0.14em] text-[#e8d9b4]">
-                    <Clock3 size={15} /> Услуги
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {selectedServices.length ? (
-                      selectedServices.map((service) => (
-                        <div key={service.id} className="flex items-start justify-between gap-3 rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5">
-                          <span className="text-[0.84rem] leading-[1.4] text-[#efe4c8]/84">{service.title}</span>
-                          <strong className="shrink-0 text-[0.84rem] text-[#f6efdb]">{formatCurrency(service.price)}</strong>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-3 py-2.5 text-[0.84rem] text-[#efe4c8]/72">
-                        Без дополнительных услуг
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 rounded-[24px] border border-[#d9c891]/45 bg-[rgba(255,255,255,.06)] px-4 py-4">
-                <div className="text-[0.74rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Итоговая сумма</div>
-                <div className="mt-2 text-[1.8rem] font-black text-[#f6efdb]">{formatCurrency(total)}</div>
-                <p className="mt-2 text-[0.84rem] leading-[1.45] text-[#efe4c8]/78">
-                  Подтверждение записи идет через Telegram или по телефону:{" "}
-                  <a className="font-semibold text-[#f6efdb]" href={BOOKING_CONTACTS.phoneHref}>
-                    {BOOKING_CONTACTS.phone}
-                  </a>
-                </p>
-              </div>
-
-              <div className="mt-4 rounded-2xl border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] px-4 py-3 text-[0.82rem] leading-[1.45] text-[#efe4c8]/78">
-                {BOOKING_CONTACTS.note}
-              </div>
-
-              <div className="mt-4 grid gap-2">
-                <a className="btn-cream min-h-[44px] w-full" href={BOOKING_CONTACTS.phoneHref}>
-                  <Phone size={16} />
-                  <span className="ml-2">Позвонить</span>
-                </a>
-                <a className="btn-forest min-h-[44px] w-full" href={BOOKING_CONTACTS.telegramHref} target="_blank" rel="noreferrer">
-                  <Send size={16} />
-                  <span className="ml-2">Telegram</span>
-                </a>
               </div>
             </div>
-          </aside>
+
+            <aside className="hidden lg:block lg:sticky lg:top-24">
+              <div className="forest-card p-5">
+                <div className="border-b border-[#d6c388]/16 pb-4">
+                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Ваш визит</div>
+                  <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Сводка заказа</h3>
+                  <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">
+                    Предоплата на сайте составляет 500 ₽ за каждое место. Остаток оплачивается уже в антикафе.
+                  </p>
+                </div>
+
+                <div className="mt-5 space-y-5">
+                  <SummaryRows
+                    selectedTickets={selectedTickets}
+                    selectedDateLabel={selectedDate?.dayLabel ?? "Выберите"}
+                    selectedTimeLabel={selectedTimeLabel}
+                    totalTicketsCount={totalTicketsCount}
+                    total={total}
+                    prepaymentNow={prepaymentNow}
+                    remainingOnSite={remainingOnSite}
+                    happyHourDiscountAmount={happyHourDiscountAmount}
+                  />
+                </div>
+
+                <div className="mt-5 rounded-[22px] border border-[#8fad5e]/34 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.18)_100%)] px-4 py-4 text-[0.84rem] leading-[1.45] text-[#edf6df]">
+                  После заявки с вами свяжется администратор. Телефон для быстрой связи:{" "}
+                  <a className="font-semibold text-[#f7efdc]" href={BOOKING_CONTACTS.phoneHref}>
+                    {BOOKING_CONTACTS.phone}
+                  </a>
+                </div>
+
+                <div className="mt-4 grid gap-2">
+                  <a className="btn-cream min-h-[44px] w-full" href={BOOKING_CONTACTS.phoneHref}>
+                    <Phone size={16} />
+                    <span className="ml-2">Позвонить</span>
+                  </a>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
       </div>
     </section>

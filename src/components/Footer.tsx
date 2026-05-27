@@ -1,22 +1,26 @@
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 
-const navigationLinks = [
-  { label: "Главная", href: "#" },
-  { label: "О нас", href: "#about" },
-  { label: "Тарифы", href: "#pricing" },
-  { label: "Галерея", href: "#gallery" },
-  { label: "Запись", href: "#booking" },
-  { label: "Контакты", href: "#contacts" },
-];
+type FooterProps = {
+  homeHrefPrefix?: string;
+};
 
-const helpLinks = [
-  { label: "Помощь", href: "#faq" },
-  { label: "Как проходит визит", href: "#visit-flow" },
-  { label: "Правила посещения", href: "#rules" },
-  { label: "Перенос и возврат", href: "#faq" },
-];
+export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
+  const navigationLinks = [
+    { label: "Главная", href: homeHrefPrefix || "#" },
+    { label: "О нас", href: `${homeHrefPrefix}#about` },
+    { label: "Тарифы", href: `${homeHrefPrefix}#pricing` },
+    { label: "Галерея", href: `${homeHrefPrefix}#gallery` },
+    { label: "Запись", href: "/booking" },
+    { label: "Контакты", href: `${homeHrefPrefix}#contacts` },
+  ];
 
-export default function Footer() {
+  const helpLinks = [
+    { label: "Помощь", href: `${homeHrefPrefix}#faq` },
+    { label: "Как проходит визит", href: `${homeHrefPrefix}#visit-flow` },
+    { label: "Правила посещения", href: `${homeHrefPrefix}#rules` },
+    { label: "Перенос и возврат", href: `${homeHrefPrefix}#faq` },
+  ];
+
   return (
     <footer className="border-t border-[#a48c4b]/45 bg-[rgba(7,17,10,.92)]">
       <div className="container-x py-10 sm:py-12">
@@ -81,7 +85,7 @@ export default function Footer() {
               <div className="rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#efe4c8]/82">
                 {BOOKING_CONTACTS.hours}
               </div>
-              <a className="btn-forest mt-2 min-h-[44px] w-full" href="#booking">
+              <a className="btn-forest mt-2 min-h-[44px] w-full" href="/booking">
                 Перейти к записи
               </a>
             </div>

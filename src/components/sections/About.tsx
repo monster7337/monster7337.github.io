@@ -8,20 +8,22 @@ const features = [
     icon: "🐿️",
     title: "Белки, минипиги и другие.",
     text: "Ручные животные разных видов и пород, контакт под присмотром и безопасное общение!",
-    mobileText: "Ручные животные разных видов и пород, безопасное общение под присмотром!",
   },
   {
     icon: "☕",
     title: "Угощение для гостей!",
     text: "Чай, кофе, вода, соки и сладости в уютной домашней атмосфере.",
-    mobileText: "Чай, кофе, вода, соки и сладости в домашней атмосфере.",
   },
   {
     icon: "🌿",
     title: "Уютная атмосфера",
     text: "Лесной уголок в самом центре Санкт-Петербурга!",
-    mobileText: "Лесной уголок в самом центре Санкт-Петербурга!",
   },
+];
+
+const introParagraphs = [
+  "Погрузитесь в мир уюта и радости в нашем уникальном антикафе с ручными минипигами и белками разных пород! Эти милые создания ждут вас, чтобы подарить незабываемые моменты и зарядить позитивом.",
+  "Уютная атмосфера, чай, кофе, вода, соки, сладости и возможность пообщаться с пушистыми друзьями и крохотными пятачками создают идеальное сочетание для отдыха. Запланируйте визит уже сегодня и откройте для себя новый уровень удовольствия вместе с друзьями и семьей.",
 ];
 
 export default function About() {
@@ -39,21 +41,14 @@ export default function About() {
         <h2 className="section-title text-[1.95rem] sm:text-[2.35rem]">О нас</h2>
         <div className="mt-2 h-px bg-[#e8d8b0]/25" />
 
-        <p className="mt-4 max-w-[620px] text-[0.92rem] leading-relaxed text-[#efe4c8]/92 sm:hidden">
-          Теплое место, где можно познакомиться с белками и минипигами, спокойно отдохнуть и провести красивый час с близкими.
-        </p>
-        <p className="mt-5 hidden max-w-[980px] text-[1rem] leading-relaxed text-[#efe4c8]/92 sm:block">
-          Погрузитесь в мир уюта и радости в нашем уникальном антикафе с ручными минипигами и
-          белками разных пород! Эти милые создания ждут вас, чтобы подарить незабываемые моменты и
-          зарядить позитивом. Уютная атмосфера, чай, кофе, вода, соки, сладости и возможность
-          пообщаться с пушистыми друзьями и крохотными пятачками — идеальное сочетание для вашего
-          отдыха.
-        </p>
-        <p className="mt-3 hidden max-w-[980px] text-[1rem] leading-relaxed text-[#efe4c8]/88 sm:block">
-          Запланируйте визит уже сегодня и откройте для себя новый уровень удовольствия! ✨ Мы
-          ждем вас, чтобы вместе создать волшебные воспоминания. Не забудьте пригласить друзей —
-          веселье в компании гарантировано!
-        </p>
+        {introParagraphs.map((paragraph, index) => (
+          <p
+            key={paragraph}
+            className={`max-w-[980px] leading-relaxed ${index === 0 ? "mt-4" : "mt-3"} text-[0.9rem] text-[#efe4c8]/90 sm:text-[0.98rem] ${index === 0 ? "sm:text-[0.99rem]" : ""}`}
+          >
+            {paragraph}
+          </p>
+        ))}
 
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
           {features.map((item, idx) => (
@@ -66,10 +61,7 @@ export default function About() {
                 {item.icon}
               </div>
               <h3 className="mt-2.5 text-[1rem] font-black leading-[1.12] sm:mt-3 sm:text-[1.35rem]">{item.title}</h3>
-              <p className="mt-1.5 text-[0.78rem] leading-[1.38] text-[#f0e4c9]/84 sm:mt-2 sm:text-[0.93rem] sm:leading-relaxed">
-                <span className="sm:hidden">{item.mobileText}</span>
-                <span className="hidden sm:inline">{item.text}</span>
-              </p>
+              <p className="mt-1.5 text-[0.78rem] leading-[1.38] text-[#f0e4c9]/84 sm:mt-2 sm:text-[0.93rem] sm:leading-relaxed">{item.text}</p>
             </motion.article>
           ))}
         </div>

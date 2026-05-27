@@ -49,12 +49,12 @@ export default function Contacts() {
             {mobileContacts.map((item) => {
               const Icon = item.icon;
               const content = (
-                <div className="glass-leaf-card min-h-[118px] p-3.5 sm:p-5 lg:hidden">
+                <div className="glass-leaf-card flex min-h-[126px] h-full flex-col p-3.5 sm:min-h-[132px] sm:p-5 lg:hidden">
                   <div className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(242,226,191,.4)] bg-[rgba(255,255,255,.1)] text-[#f8f0de]">
                     <Icon size={18} />
                   </div>
                   <div className="mt-2 text-[0.74rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">{item.label}</div>
-                  <div className="mt-1 text-[0.86rem] font-bold leading-[1.2] text-[#f6efdb]">{item.value}</div>
+                  <div className="mt-1 flex-1 text-[0.86rem] font-bold leading-[1.2] text-[#f6efdb]">{item.value}</div>
                 </div>
               );
 
@@ -62,14 +62,14 @@ export default function Contacts() {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="block lg:hidden"
+                  className="block h-full lg:hidden"
                   target={item.external ? "_blank" : undefined}
                   rel={item.external ? "noopener noreferrer" : undefined}
                 >
                   {content}
                 </a>
               ) : (
-                <div key={item.label} className="lg:hidden">
+                <div key={item.label} className="h-full lg:hidden">
                   {content}
                 </div>
               );

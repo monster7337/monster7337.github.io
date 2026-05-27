@@ -4,6 +4,7 @@ const isStaticExport = process.env.STATIC_EXPORT === "true";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  allowedDevOrigins: ["192.168.0.5"],
   ...(isStaticExport
     ? {
         output: "export",

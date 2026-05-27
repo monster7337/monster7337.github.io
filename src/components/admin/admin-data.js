@@ -53,7 +53,7 @@ export const ticketCatalog = {
 };
 
 export const durationOptions = [60];
-export const sourceOptions = ["Сайт", "Телефон", "Telegram", "VK", "Повторный визит"];
+export const sourceOptions = ["Сайт", "Телефон", "Telegram", "VK", "Instagram", "Повторный визит"];
 export const paymentMethodOptions = [
   { value: "online", label: "Онлайн на сайте" },
   { value: "cash", label: "Наличные" },
@@ -62,7 +62,7 @@ export const paymentMethodOptions = [
   { value: "transfer", label: "Перевод" }
 ];
 export const onSitePaymentMethodOptions = paymentMethodOptions.filter((item) => item.value !== "online");
-export const giftDeliveryOptions = ["Email", "Telegram", "VK", "WhatsApp"];
+export const giftDeliveryOptions = ["Email", "Telegram", "VK", "Instagram", "WhatsApp"];
 export const financeTypeOptions = [
   { value: "income", label: "Доход" },
   { value: "expense", label: "Расход" }
@@ -1100,8 +1100,224 @@ export function createAppointmentTemplate(dateKey) {
   };
 }
 
+function buildAppointment({
+  id,
+  clientName,
+  phone,
+  email = "",
+  date,
+  time,
+  guestCount,
+  guestTickets,
+  service,
+  selectedExtras = [],
+  comment,
+  status,
+  createdAtOffsetDays,
+  source,
+  prepaymentAmount = 0,
+  paymentMethod = "online",
+  onSitePaymentAmount = 0,
+  onSitePaymentMethod = ""
+}) {
+  const createdAt = new Date();
+  createdAt.setDate(createdAt.getDate() + createdAtOffsetDays);
+  createdAt.setHours(9, 30, 0, 0);
+
+  return normalizeAppointment({
+    id,
+    clientName,
+    phone,
+    email,
+    date,
+    time: normalizeTime(time),
+    guestCount,
+    guestTickets,
+    service: normalizeTariff(service ?? guestTickets?.[0]?.tariff),
+    selectedExtras,
+    comment,
+    status,
+    source,
+    prepaymentAmount,
+    paymentMethod,
+    onSitePaymentAmount,
+    onSitePaymentMethod,
+    createdAt: createdAt.toISOString(),
+    updatedAt: createdAt.toISOString()
+  });
+}
+
+function makeTickets(...tariffs) {
+  return tariffs.map((tariff, index) => createGuestTicket(tariff, index));
+}
+
 export function createMockAppointments() {
-  return [];
+  const today = formatDateKey(new Date());
+
+  return sortAppointments([
+    buildAppointment({
+      id: "apt-001",
+      clientName: "Алина Смирнова",
+      phone: "+7 921 555-10-10",
+      email: "alina@example.com",
+      date: today,
+      time: "11:00",
+      guestTickets: makeTickets("Семейный билет", "Обычный билет", "Льготный билет"),
+      service: "Семейный билет",
+      comment: "Мама, папа и ребенок.",
+      status: "confirmed",
+      createdAtOffsetDays: -2,
+      source: "Сайт",
+      prepaymentAmount: 1500,
+      paymentMethod: "online"
+    }),
+    buildAppointment({
+      id: "apt-002",
+      clientName: "Марк Белоусов",
+      phone: "+7 981 731-08-33",
+      date: today,
+      time: "11:00",
+      guestTickets: makeTickets("Обычный билет", "Обычный билет", "Льготный билет", "Льготный билет", "Семейный билет"),
+      service: "Семейный билет",
+      comment: "Компания друзей, хотят сидеть вместе.",
+      status: "pending",
+      createdAtOffsetDays: -3,
+      source: "Telegram",
+      prepaymentAmount: 2500,
+      paymentMethod: "online"
+    }),
+    buildAppointment({
+      id: "apt-003",
+      clientName: "Екатерина Орлова",
+      phone: "+7 911 200-41-19",
+      date: today,
+      time: "13:00",
+      guestTickets: makeTickets("Льготный билет", "Обычный билет"),
+      service: "Льготный билет",
+      comment: "Подтвердить утром.",
+      status: "new",
+      createdAtOffsetDays: -1,
+      source: "Instagram",
+      prepaymentAmount: 0,
+      paymentMethod: ""
+    }),
+    buildAppointment({
+      id: "apt-004",
+      clientName: "Игорь Чернов",
+      phone: "+7 921 333-12-21",
+      date: today,
+      time: "13:00",
+      guestTickets: makeTickets("Обычный билет", "Обычный билет", "Семейный билет", "Семейный билет"),
+      service: "Обычный билет",
+      comment: "Первый визит.",
+      status: "completed",
+      createdAtOffsetDays: -4,
+      source: "Телефон",
+      prepaymentAmount: 2000,
+      paymentMethod: "online",
+      onSitePaymentAmount: 3400,
+      onSitePaymentMethod: "card"
+    }),
+    buildAppointment({
+      id: "apt-005",
+      clientName: "Дарья Климова",
+      phone: "+7 911 700-33-49",
+      date: today,
+      time: "15:00",
+      guestTickets: makeTickets("Счастливый час", "Счастливый час"),
+      service: "Счастливый час",
+      comment: "Мама с ребенком.",
+      status: "canceled",
+      createdAtOffsetDays: -5,
+      source: "Сайт",
+      prepaymentAmount: 1000,
+      paymentMethod: "online"
+    }),
+    buildAppointment({
+      id: "apt-006",
+      clientName: "Никита Козлов",
+      phone: "+7 905 110-42-17",
+      date: shiftDate(today, 1),
+      time: "11:00",
+      guestTickets: makeTickets("Семейный билет", "Семейный билет", "Обычный билет"),
+      service: "Семейный билет",
+      comment: "Повторный визит.",
+      status: "confirmed",
+      createdAtOffsetDays: -2,
+      source: "Повторный визит",
+      prepaymentAmount: 1500,
+      paymentMethod: "online"
+    }),
+    buildAppointment({
+      id: "apt-007",
+      clientName: "София Карпова",
+      phone: "+7 931 450-60-18",
+      date: shiftDate(today, 1),
+      time: "13:00",
+      guestTickets: makeTickets("Обычный билет"),
+      service: "Обычный билет",
+      comment: "Позвонить утром.",
+      status: "new",
+      createdAtOffsetDays: -1,
+      source: "Телефон",
+      prepaymentAmount: 0,
+      paymentMethod: ""
+    }),
+    buildAppointment({
+      id: "apt-008",
+      clientName: "Ольга Воронова",
+      phone: "+7 911 880-22-11",
+      date: shiftDate(today, 2),
+      time: "15:00",
+      guestTickets: makeTickets(
+        "Семейный билет",
+        "Семейный билет",
+        "Обычный билет",
+        "Обычный билет",
+        "Льготный билет",
+        "Льготный билет"
+      ),
+      service: "Семейный билет",
+      comment: "Большая компания.",
+      status: "pending",
+      createdAtOffsetDays: -6,
+      source: "Telegram",
+      prepaymentAmount: 3000,
+      paymentMethod: "online"
+    }),
+    buildAppointment({
+      id: "apt-009",
+      clientName: "Лев Степанов",
+      phone: "+7 921 456-78-01",
+      date: shiftDate(today, -1),
+      time: "17:00",
+      guestTickets: makeTickets("Льготный билет", "Льготный билет"),
+      service: "Льготный билет",
+      comment: "Визит прошел спокойно.",
+      status: "completed",
+      createdAtOffsetDays: -8,
+      source: "Сайт",
+      prepaymentAmount: 1000,
+      paymentMethod: "online",
+      onSitePaymentAmount: 1000,
+      onSitePaymentMethod: "cash"
+    }),
+    buildAppointment({
+      id: "apt-010",
+      clientName: "Полина Глебова",
+      phone: "+7 999 123-44-78",
+      date: shiftDate(today, 4),
+      time: "19:00",
+      guestTickets: makeTickets("Семейный билет", "Семейный билет", "Обычный билет", "Обычный билет"),
+      service: "Семейный билет",
+      comment: "Нужны места рядом.",
+      status: "confirmed",
+      createdAtOffsetDays: -10,
+      source: "Instagram",
+      prepaymentAmount: 2000,
+      paymentMethod: "online"
+    })
+  ]);
 }
 
 export function normalizeGiftCertificateOrder(values) {
@@ -1395,13 +1611,153 @@ export function saveGiftCertificatePurchase(values) {
 }
 
 export function createMockGiftCertificateOrders() {
-  return [];
+  const today = formatDateKey(new Date());
+
+  return [
+    normalizeGiftCertificateOrder({
+      id: "gift-001",
+      certificateId: "gift-standard",
+      purchaserName: "Мария Соколова",
+      purchaserPhone: "+7 900 111-22-33",
+      purchaserEmail: "maria@example.com",
+      recipientName: "Анна",
+      recipientEmail: "anna@example.com",
+      message: "С днем рождения и теплого визита!",
+      deliveryMethod: "Email",
+      purchaseDate: today,
+      purchaseTime: "10:15",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }),
+    normalizeGiftCertificateOrder({
+      id: "gift-002",
+      certificateId: "gift-nominal",
+      amount: 5000,
+      purchaserName: "Денис Павлов",
+      purchaserPhone: "+7 921 200-77-11",
+      purchaserEmail: "denis@example.com",
+      recipientName: "Ольга",
+      deliveryMethod: "WhatsApp",
+      purchaseDate: shiftDate(today, -1),
+      purchaseTime: "18:40",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    })
+  ];
 }
 
 export function createMockFinanceRecords() {
-  return [];
+  const today = formatDateKey(new Date());
+
+  return sortFinanceRecords([
+    normalizeFinanceRecord({
+      id: "finance-001",
+      type: "expense",
+      date: today,
+      time: "09:40",
+      title: "Расходники для зала",
+      person: "Хозмаркет",
+      category: "Расходники",
+      amount: 900,
+      note: "Салфетки, перчатки и уборка",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }),
+    normalizeFinanceRecord({
+      id: "finance-002",
+      type: "income",
+      date: today,
+      time: "12:20",
+      title: "Доплата за праздник",
+      person: "Анастасия Волкова",
+      category: "Мероприятие",
+      amount: 7000,
+      note: "День рождения вне сайта",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }),
+    normalizeFinanceRecord({
+      id: "finance-003",
+      type: "expense",
+      date: today,
+      time: "20:10",
+      title: "Зарплата администратора",
+      person: "Марина",
+      category: "Зарплата",
+      amount: 2500,
+      note: "Смена за день",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }),
+    normalizeFinanceRecord({
+      id: "finance-004",
+      type: "expense",
+      date: shiftDate(today, -1),
+      time: "18:30",
+      title: "Корм и уход",
+      person: "Фермерский склад",
+      category: "Корм и уход",
+      amount: 1800,
+      note: "Овощи и лакомства для животных",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    })
+  ]);
 }
 
 export function createMockActivityLog() {
-  return [];
+  const today = formatDateKey(new Date());
+
+  return [
+    createActivityEntry({
+      id: "activity-001",
+      entityId: "apt-005",
+      entityType: "appointment",
+      kind: "canceled",
+      relatedDate: today,
+      relatedTime: "15:00",
+      tone: "danger",
+      message: "Отмена: Дарья Климова освободила слот 15:00."
+    }),
+    createActivityEntry({
+      id: "activity-002",
+      entityId: "apt-001",
+      entityType: "appointment",
+      kind: "created",
+      relatedDate: today,
+      relatedTime: "11:00",
+      tone: "success",
+      message: "Сайт: новая бронь Алина Смирнова · 11:00 · 3 чел."
+    }),
+    createActivityEntry({
+      id: "activity-003",
+      entityId: "gift-001",
+      entityType: "gift-certificate",
+      kind: "paid",
+      relatedDate: today,
+      relatedTime: "10:15",
+      tone: "success",
+      message: "Сертификат оплачен: Мария Соколова · Сертификат на стандартный визит."
+    }),
+    createActivityEntry({
+      id: "activity-004",
+      entityId: "finance-002",
+      entityType: "finance",
+      kind: "income",
+      relatedDate: today,
+      relatedTime: "12:20",
+      tone: "success",
+      message: `Ручной доход: Доплата за праздник · ${formatCurrency(7000)}`
+    }),
+    createActivityEntry({
+      id: "activity-005",
+      entityId: "finance-003",
+      entityType: "finance",
+      kind: "expense",
+      relatedDate: today,
+      relatedTime: "20:10",
+      tone: "danger",
+      message: `Расход: Зарплата администратора · ${formatCurrency(2500)}`
+    })
+  ];
 }

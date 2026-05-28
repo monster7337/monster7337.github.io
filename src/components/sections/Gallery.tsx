@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Camera, Clock3, Heart, ShieldCheck, Sparkles, Users, X } from "lucide-react";
 import Image from "next/image";
 import { galleryImageBlurDataUrl, getOptimizedGallerySrc } from "@/lib/galleryAssets";
 import { useScrollRevealMotion } from "@/lib/useMobileMotion";
@@ -131,22 +131,74 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
               </div>
             </div>
 
-            <form
-              className="form-shell rounded-2xl p-4 lg:col-span-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                onOpenBooking();
-              }}
-            >
-              <div className="text-sm font-bold text-[#f5eddb]">Оставьте контакты</div>
-              <p className="mt-1 text-[0.8rem] leading-[1.4] text-[#efe4c8]/78">Напишите имя и телефон, и мы поможем выбрать удобное время.</p>
-              <input className="field-paper mt-3" placeholder="Ваше имя" />
-              <input className="field-paper mt-3" placeholder="+7 (___) ___-__-__" />
-              <textarea className="field-paper mt-3 min-h-[96px] sm:min-h-[120px]" placeholder="Если хотите, напишите пожелания" />
-              <button className="btn-forest mt-4 min-h-[42px] w-full text-sm sm:min-h-0 sm:text-base" type="submit">
-                Отправить заявку
-              </button>
-            </form>
+            <div className="form-shell rounded-2xl p-4 lg:col-span-3">
+              <div className="text-sm font-bold text-[#f5eddb]">Готовы выбрать время?</div>
+              <p className="mt-1 text-[0.82rem] leading-[1.45] text-[#efe4c8]/78">
+                Откройте запись и выберите удобный день, время и формат визита.
+              </p>
+
+              <motion.button
+                type="button"
+                onClick={onOpenBooking}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.985 }}
+                transition={{ duration: 0.18 }}
+                className="btn-forest mt-4 min-h-[46px] w-full"
+              >
+                Записаться
+              </motion.button>
+
+              <div className="mt-4 rounded-[24px] border border-[#b69b44]/40 bg-[linear-gradient(180deg,rgba(28,52,20,.9)_0%,rgba(17,33,13,.96)_100%)] p-3 shadow-[0_16px_34px_rgba(0,0,0,.22)]">
+                <div className="flex items-center gap-2 text-[0.92rem] font-bold text-[#d8e38f]">
+                  <Sparkles size={16} />
+                  Что вас ждёт
+                </div>
+
+                <div className="mt-3 space-y-2.5">
+                  {[
+                    { icon: Users, label: "Контакт с животными" },
+                    { icon: Camera, label: "Уютная фотозона" },
+                    { icon: Heart, label: "Для семьи, друзей и свиданий" },
+                    { icon: CalendarDays, label: "По предварительной записи" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-3 rounded-[14px] border border-[#92ae5c]/18 bg-[linear-gradient(180deg,rgba(57,88,35,.42)_0%,rgba(23,42,16,.7)_100%)] px-3 py-3 text-[0.88rem] font-semibold text-[#f2ebd6]"
+                    >
+                      <item.icon size={18} className="shrink-0 text-[#d6e38b]" />
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 rounded-[18px] border border-[#c8a846]/50 bg-[linear-gradient(180deg,rgba(53,74,28,.76)_0%,rgba(27,44,18,.92)_100%)] px-3 py-3">
+                  <div className="flex items-center gap-3 text-[0.9rem] font-semibold text-[#f3df8f]">
+                    <Clock3 size={18} className="shrink-0" />
+                    <span>Сеанс 1 час</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-[0.9rem] font-semibold text-[#f3df8f]">
+                    <Users size={18} className="shrink-0" />
+                    <span>Можно с семьёй, друзьями или на свидание</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {[
+                    { icon: ShieldCheck, label: "Безопасно" },
+                    { icon: Heart, label: "Уютно" },
+                    { icon: Sparkles, label: "Живые эмоции" },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-[14px] border border-[#92ae5c]/14 bg-[rgba(29,50,21,.7)] px-2 py-2.5 text-center"
+                    >
+                      <item.icon size={16} className="mx-auto text-[#cfde84]" />
+                      <div className="mt-1 text-[0.68rem] font-medium leading-[1.2] text-[#dfe7bd]">{item.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 hidden justify-center sm:flex">

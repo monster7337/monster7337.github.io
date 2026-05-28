@@ -18,12 +18,13 @@ import { BOOKING_CONTACTS, BOOKING_TICKETS, BookingTicketId, formatCurrency } fr
 import { DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
 
 const BOOKING_PREPAYMENT_PER_GUEST = 500;
+
 const bookingSteps = ["Билеты", "Дата", "Время", "Контакты", "Подтверждение"];
 const bookingStepNotes = [
   "Выберите билеты на посещение",
   "Найдите удобный день визита",
   "Выберите подходящий слот",
-  "Оставьте телефон для связи",
+  "Оставьте контакты для связи",
   "Проверьте предоплату и детали",
 ];
 
@@ -34,8 +35,6 @@ const tariffMap: Record<BookingTicketId, string> = {
   "happy-hour": "Счастливый час",
 };
 
-const selectableTickets = BOOKING_TICKETS.filter((ticket) => ticket.id !== "happy-hour");
-
 type BookingPlannerProps = {
   initialTicketId?: BookingTicketId;
   initialDateId?: string;
@@ -43,7 +42,9 @@ type BookingPlannerProps = {
 };
 
 type ContactValues = {
+  name: string;
   phone: string;
+  email: string;
   comment: string;
 };
 
@@ -52,6 +53,7 @@ type SelectedTicket = (typeof BOOKING_TICKETS)[number] & {
   originalPrice: number;
   effectiveTariffId: BookingTicketId;
   hasHappyHourDiscount: boolean;
+  switchMessage?: string;
 };
 
 function getTicketWord(count: number) {
@@ -105,6 +107,7 @@ function SummaryRows({
                     {ticket.mobileName} x{ticket.quantity}
                   </div>
                   {ticket.hasHappyHourDiscount ? <div className="mt-1 text-[0.72rem] text-[#dbe8be]">цена счастливого часа</div> : null}
+                  {ticket.switchMessage ? <div className="mt-1 text-[0.72rem] text-[#dbe8be]">{ticket.switchMessage}</div> : null}
                 </div>
                 <strong className="shrink-0 text-[0.84rem] text-[#f7efdc]">{formatCurrency(ticket.price * ticket.quantity)}</strong>
               </div>
@@ -173,25 +176,25 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const dateOptions = useMemo(() => getBookingDateOptions(), []);
   const initialResolvedDateId = dateOptions.some((item) => item.id === initialDateId) ? initialDateId : dateOptions[0]?.id ?? "";
   const initialResolvedTime = initialTime && FIXED_SLOT_TIMES.includes(initialTime) ? initialTime : DEFAULT_BOOKING_TIME;
-  const normalizedInitialTicketId = initialTicketId === "happy-hour" ? "standard" : initialTicketId;
 
   const [step, setStep] = useState(0);
   const [selectedDateId, setSelectedDateId] = useState(initialResolvedDateId);
   const [selectedTime, setSelectedTime] = useState(initialResolvedTime);
   const [selectedRateQuantities, setSelectedRateQuantities] = useState<Partial<Record<BookingTicketId, number>>>(() => {
-    if (!normalizedInitialTicketId) return {};
-    return { [normalizedInitialTicketId]: normalizedInitialTicketId === "family" ? 3 : 1 };
+    if (!initialTicketId) return {};
+    return { [initialTicketId]: initialTicketId === "family" ? 3 : 1 };
   });
-  const [activeInfoRateId, setActiveInfoRateId] = useState<BookingTicketId | null>(normalizedInitialTicketId ?? null);
-  const [contactValues, setContactValues] = useState<ContactValues>({ phone: "", comment: "" });
+  const [activeInfoRateId, setActiveInfoRateId] = useState<BookingTicketId | null>(initialTicketId ?? null);
+  const [contactValues, setContactValues] = useState<ContactValues>({ name: "", phone: "", email: "", comment: "" });
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ContactValues, string>>>({});
   const [stepError, setStepError] = useState("");
   const [storageSnapshot, setStorageSnapshot] = useState(getStorageSnapshot);
 
   const selectedDate = dateOptions.find((item) => item.id === selectedDateId) ?? null;
+  const selectedDateKey = selectedDate?.id ?? "";
   const familyCount = selectedRateQuantities.family ?? 0;
   const happyHourRate = BOOKING_TICKETS.find((ticket) => ticket.id === "happy-hour");
-  const selectedDateKey = selectedDate?.id ?? "";
+  const standardRate = BOOKING_TICKETS.find((ticket) => ticket.id === "standard");
   const happyHourDiscountActive = isHappyHourEnabled(storageSnapshot.settings, selectedDateKey, selectedTime);
 
   useEffect(() => {
@@ -200,26 +203,36 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     return () => window.removeEventListener("storage", syncStorage);
   }, []);
 
-  const selectedTickets = useMemo<SelectedTicket[]>(
-    () =>
-      selectableTickets
-        .map((ticket) => {
-          const quantity = selectedRateQuantities[ticket.id] ?? 0;
-          const hasHappyHourDiscount = Boolean(happyHourDiscountActive && happyHourRate && ticket.id === "standard");
-          const effectivePrice = hasHappyHourDiscount && happyHourRate ? happyHourRate.price : ticket.price;
+  const selectedTickets = useMemo<SelectedTicket[]>(() => {
+    return BOOKING_TICKETS.map((ticket) => {
+      const quantity = selectedRateQuantities[ticket.id] ?? 0;
+      const standardPrice = standardRate?.price ?? ticket.price;
+      const isHappyTicket = ticket.id === "happy-hour";
+      const isStandardTicket = ticket.id === "standard";
 
-          return {
-            ...ticket,
-            quantity,
-            price: effectivePrice,
-            originalPrice: ticket.price,
-            effectiveTariffId: hasHappyHourDiscount ? "happy-hour" : ticket.id,
-            hasHappyHourDiscount,
-          };
-        })
-        .filter((ticket) => ticket.quantity > 0),
-    [happyHourDiscountActive, happyHourRate, selectedRateQuantities]
-  );
+      const switchedToHappyHour = Boolean(happyHourDiscountActive && isStandardTicket && happyHourRate);
+      const switchedToStandard = Boolean(!happyHourDiscountActive && isHappyTicket);
+      const staysHappyHour = Boolean(happyHourDiscountActive && isHappyTicket);
+
+      const effectiveTariffId: BookingTicketId = switchedToHappyHour || staysHappyHour ? "happy-hour" : switchedToStandard ? "standard" : ticket.id;
+      const effectivePrice = effectiveTariffId === "happy-hour" && happyHourRate ? happyHourRate.price : effectiveTariffId === "standard" ? standardPrice : ticket.price;
+      const switchMessage = switchedToHappyHour
+        ? "Для этого времени действует цена счастливого часа."
+        : switchedToStandard
+          ? "Для этого времени действует обычная цена."
+          : undefined;
+
+      return {
+        ...ticket,
+        quantity,
+        price: effectivePrice,
+        originalPrice: ticket.price,
+        effectiveTariffId,
+        hasHappyHourDiscount: effectiveTariffId === "happy-hour" && effectivePrice < standardPrice,
+        switchMessage,
+      };
+    }).filter((ticket) => ticket.quantity > 0);
+  }, [happyHourDiscountActive, happyHourRate, selectedRateQuantities, standardRate]);
 
   const totalTicketsCount = selectedTickets.reduce((sum, item) => sum + item.quantity, 0);
   const ticketsTotal = selectedTickets.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -228,6 +241,25 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     0
   );
 
+  const bookingSwitchNotice = useMemo(() => {
+    const switchedToHappyHourCount = selectedTickets
+      .filter((ticket) => ticket.id === "standard" && ticket.effectiveTariffId === "happy-hour")
+      .reduce((sum, ticket) => sum + ticket.quantity, 0);
+    const switchedToStandardCount = selectedTickets
+      .filter((ticket) => ticket.id === "happy-hour" && ticket.effectiveTariffId === "standard")
+      .reduce((sum, ticket) => sum + ticket.quantity, 0);
+
+    if (switchedToHappyHourCount > 0) {
+      return `Вы выбрали счастливый слот, поэтому ${switchedToHappyHourCount} ${getTicketWord(switchedToHappyHourCount)} ${switchedToHappyHourCount === 1 ? "перешел" : "перешли"} на цену счастливого часа.`;
+    }
+
+    if (switchedToStandardCount > 0) {
+      return `Для выбранного времени счастливый час не действует, поэтому ${switchedToStandardCount} ${getTicketWord(switchedToStandardCount)} ${switchedToStandardCount === 1 ? "перешел" : "перешли"} на обычную цену.`;
+    }
+
+    return "";
+  }, [selectedTickets]);
+
   const timeSlots = useMemo(() => {
     if (!selectedDate) {
       return [];
@@ -235,11 +267,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
     return FIXED_SLOT_TIMES.map((time) => {
       const state = getSlotCapacityState(storageSnapshot.appointments, storageSnapshot.settings, selectedDate.id, time);
-      const disabled = state.remainingGuests < Math.max(1, totalTicketsCount);
-
       return {
         time,
-        disabled,
+        disabled: state.remainingGuests < Math.max(1, totalTicketsCount),
         remainingGuests: state.remainingGuests,
         totalCapacity: state.totalCapacity,
         isHappyHour: isHappyHourEnabled(storageSnapshot.settings, selectedDate.id, time),
@@ -264,9 +294,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const selectedDateLabel = selectedDate ? selectedDate.label : "Выберите дату";
   const selectedTimeLabel = selectedTime || "Выберите время";
   const mobileSelectionNote =
-    totalTicketsCount > 0
-      ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} · предоплата ${formatCurrency(prepaymentNow)}`
-      : "Соберите визит по шагам";
+    totalTicketsCount > 0 ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} · предоплата ${formatCurrency(prepaymentNow)}` : "Соберите визит по шагам";
 
   function resetStatuses() {
     setStepError("");
@@ -277,13 +305,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     setSelectedRateQuantities((current) => {
       const nextQuantity = Math.max(0, (current[id] ?? 0) + delta);
       const next = { ...current };
-
-      if (nextQuantity === 0) {
-        delete next[id];
-      } else {
-        next[id] = nextQuantity;
-      }
-
+      if (nextQuantity === 0) delete next[id];
+      else next[id] = nextQuantity;
       return next;
     });
   }
@@ -302,15 +325,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
   function validateContacts() {
     const nextErrors: Partial<Record<keyof ContactValues, string>> = {};
-
-    if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) {
-      nextErrors.phone = "Укажите телефон корректно";
-    }
-
-    if (contactValues.comment.trim().length > 280) {
-      nextErrors.comment = "Комментарий должен быть короче 280 символов";
-    }
-
+    if (contactValues.name.trim().length < 2) nextErrors.name = "Укажите имя";
+    if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) nextErrors.phone = "Укажите телефон корректно";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactValues.email.trim())) nextErrors.email = "Укажите email корректно";
+    if (contactValues.comment.trim().length > 280) nextErrors.comment = "Комментарий должен быть короче 280 символов";
     setFieldErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -356,9 +374,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
     try {
       const appointment = savePublicBooking({
-        clientName: contactValues.phone,
+        clientName: contactValues.name,
         phone: contactValues.phone,
-        email: "",
+        email: contactValues.email,
         date: selectedDate.id,
         time: selectedTime,
         guestTickets,
@@ -398,7 +416,6 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
         setStepError("Добавьте хотя бы один билет.");
         return;
       }
-
       if (familyCount > 0 && familyCount < 3) {
         setStepError('Для тарифа "Семейный" нужно выбрать минимум 3 билета.');
         return;
@@ -507,18 +524,17 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
                   {step === 0 ? (
                     <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
-                      {selectableTickets.map((ticket) => {
+                      {BOOKING_TICKETS.map((ticket) => {
                         const quantity = selectedRateQuantities[ticket.id] ?? 0;
                         const infoOpen = activeInfoRateId === ticket.id;
+                        const selectedTicketState = selectedTickets.find((item) => item.id === ticket.id);
 
                         return (
                           <article
                             key={ticket.id}
                             className={clsx(
                               "flex h-full flex-col rounded-[22px] border p-3 shadow-[0_14px_30px_rgba(0,0,0,.2)] transition sm:rounded-[24px] sm:p-5",
-                              quantity > 0
-                                ? "border-[#d9c891]/72 bg-[rgba(24,47,29,.92)]"
-                                : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
+                              quantity > 0 ? "border-[#d9c891]/72 bg-[rgba(24,47,29,.92)]" : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
                             )}
                           >
                             <div className="flex items-start justify-between gap-3">
@@ -539,9 +555,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                                 type="button"
                                 className={clsx(
                                   "inline-flex h-8 w-8 items-center justify-center rounded-full border transition sm:h-9 sm:w-9",
-                                  infoOpen
-                                    ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.1)] text-[#f6efdb]"
-                                    : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#efe4c8]/82"
+                                  infoOpen ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.1)] text-[#f6efdb]" : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#efe4c8]/82"
                                 )}
                                 onClick={() => setActiveInfoRateId(infoOpen ? null : ticket.id)}
                                 aria-label={`Подробнее о тарифе ${ticket.name}`}
@@ -568,6 +582,12 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             {infoOpen ? (
                               <div className="mt-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(8,18,11,.3)] px-3 py-2.5 text-[0.7rem] leading-[1.35] text-[#efe4c8]/82 sm:px-3.5 sm:py-3 sm:text-[0.78rem] sm:leading-[1.45]">
                                 {ticket.details}
+                              </div>
+                            ) : null}
+
+                            {quantity > 0 && selectedTicketState?.switchMessage ? (
+                              <div className="mt-3 rounded-[16px] border border-[#8fad5e]/28 bg-[rgba(122,166,74,.12)] px-3 py-2 text-[0.68rem] leading-[1.35] text-[#dbe8be] sm:text-[0.74rem]">
+                                {selectedTicketState.switchMessage}
                               </div>
                             ) : null}
 
@@ -617,16 +637,13 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                     <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
                       {dateOptions.map((date) => {
                         const isSelected = selectedDateId === date.id;
-
                         return (
                           <button
                             key={date.id}
                             type="button"
                             className={clsx(
                               "aspect-square rounded-[18px] border p-2.5 text-left transition sm:rounded-[20px] sm:p-3.5",
-                              isSelected
-                                ? "border-[#a7c873] bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(69,101,41,.22)_100%)]"
-                                : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
+                              isSelected ? "border-[#a7c873] bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(69,101,41,.22)_100%)]" : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)]"
                             )}
                             onClick={() => setSelectedDateId(date.id)}
                           >
@@ -673,9 +690,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         ))}
                       </div>
 
-                      {happyHourDiscountActive ? (
+                      {bookingSwitchNotice ? (
                         <div className="mt-4 rounded-[22px] border border-[#8fad5e]/28 bg-[rgba(122,166,74,.12)] px-4 py-3 text-[0.83rem] leading-[1.45] text-[#edf6df]">
-                          На выбранное время сейчас действует счастливый час. Для стандартных билетов цена уже снижена автоматически.
+                          {bookingSwitchNotice}
                         </div>
                       ) : null}
 
@@ -687,31 +704,55 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                   ) : null}
 
                   {step === 3 ? (
-                    <div className="mt-5 grid gap-3">
-                      <label className="block">
-                        <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон</span>
-                        <input
-                          className="field-paper rounded-2xl px-4 py-3"
-                          placeholder="+7 (___) ___-__-__"
-                          value={contactValues.phone}
-                          onChange={(event) => updateContactField("phone", event.target.value)}
-                        />
-                        {fieldErrors.phone ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.phone}</span> : null}
-                      </label>
+                    <div className="mt-5">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Имя</span>
+                          <input
+                            className="field-paper rounded-2xl px-4 py-3"
+                            placeholder="Как к вам обращаться"
+                            value={contactValues.name}
+                            onChange={(event) => updateContactField("name", event.target.value)}
+                          />
+                          {fieldErrors.name ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.name}</span> : null}
+                        </label>
 
-                      <label className="block">
-                        <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Комментарий</span>
-                        <textarea
-                          className="field-paper min-h-[108px] rounded-2xl px-4 py-3"
-                          placeholder="Например: будем с ребенком, нужен семейный тариф."
-                          value={contactValues.comment}
-                          onChange={(event) => updateContactField("comment", event.target.value)}
-                        />
-                        {fieldErrors.comment ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.comment}</span> : null}
-                      </label>
+                        <label className="block">
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон</span>
+                          <input
+                            className="field-paper rounded-2xl px-4 py-3"
+                            placeholder="+7 (___) ___-__-__"
+                            value={contactValues.phone}
+                            onChange={(event) => updateContactField("phone", event.target.value)}
+                          />
+                          {fieldErrors.phone ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.phone}</span> : null}
+                        </label>
 
-                      <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
-                        После подтверждения запись сразу попадет в CRM. Администратор увидит выбранные тарифы, дату, слот, телефон и сумму предоплаты.
+                        <label className="block sm:col-span-2">
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Email</span>
+                          <input
+                            className="field-paper rounded-2xl px-4 py-3"
+                            placeholder="mail@example.com"
+                            value={contactValues.email}
+                            onChange={(event) => updateContactField("email", event.target.value)}
+                          />
+                          {fieldErrors.email ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.email}</span> : null}
+                        </label>
+
+                        <label className="block sm:col-span-2">
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Комментарий</span>
+                          <textarea
+                            className="field-paper min-h-[108px] rounded-2xl px-4 py-3"
+                            placeholder="Пожелания к визиту"
+                            value={contactValues.comment}
+                            onChange={(event) => updateContactField("comment", event.target.value)}
+                          />
+                          {fieldErrors.comment ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{fieldErrors.comment}</span> : null}
+                        </label>
+                      </div>
+
+                      <div className="mt-3 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
+                        После отправки заявки мы свяжемся с вами, чтобы подтвердить запись и детали визита.
                       </div>
                     </div>
                   ) : null}
@@ -735,8 +776,16 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedTimeLabel}</strong>
                           </div>
                           <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Имя</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.name || "Не указано"}</strong>
+                          </div>
+                          <div>
                             <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Телефон</span>
                             <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.phone || "Не указан"}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Email</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.email || "Не указан"}</strong>
                           </div>
                           <div>
                             <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Длительность</span>
@@ -812,7 +861,6 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                     <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
                       Назад
                     </button>
-
                     {step < bookingSteps.length - 1 ? (
                       <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={() => goToStep(step + 1)}>
                         Продолжить

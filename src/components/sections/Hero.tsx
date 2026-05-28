@@ -12,7 +12,7 @@ export default function Hero({ onOpenBooking }: HeroProps) {
     <section className="forest-section min-h-[100svh] border-t-0 sm:min-h-[calc(100svh-80px)]">
       <div className="absolute inset-0 overflow-hidden">
         <Image
-          src="/bg/heromobile.webp?v=20260527c"
+          src="/bg/heromobile.webp?v=20260528c"
           alt='Антикафе "В Ёлках"'
           fill
           unoptimized

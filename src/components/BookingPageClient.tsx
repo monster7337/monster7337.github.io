@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -30,6 +31,16 @@ export default function BookingPageClient() {
         <div className="forest-overlay bg-[rgba(7,17,10,.66)]" />
         <div className="container-x section-content">
           <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-4 flex justify-start sm:mb-5">
+              <button
+                type="button"
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-full border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] px-4 py-2 text-[0.82rem] font-semibold text-[#f3e7c6] transition hover:bg-[rgba(255,255,255,.1)]"
+                onClick={() => router.push("/")}
+              >
+                <ArrowLeft size={16} />
+                На главную
+              </button>
+            </div>
             <div className="inline-flex rounded-full border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] px-4 py-2 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-[#e7d8b1]">
               Онлайн-запись
             </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, Check, CircleAlert, Clock3, CreditCard, Info, Minus, Phone, Plus, ShoppingBag } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -210,6 +210,11 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     window.addEventListener("storage", syncStorage);
     return () => window.removeEventListener("storage", syncStorage);
   }, []);
+
+  useEffect(() => {
+    router.prefetch("/oferta");
+    router.prefetch("/privacy");
+  }, [router]);
 
   useEffect(() => {
     const raw = window.sessionStorage.getItem(BOOKING_DRAFT_STORAGE_KEY);
@@ -586,15 +591,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 ))}
               </div>
 
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={step}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.22 }}
-                  className="forest-card mt-4 overflow-hidden p-4 sm:p-5 lg:p-6"
-                >
+              <div className="forest-card mt-4 overflow-hidden p-4 sm:p-5 lg:p-6">
                   <div className="border-b border-[#d6c388]/16 pb-4">
                     <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг {step + 1}</div>
                     <h3 className="mt-2 text-[1.28rem] font-black text-[#f6efdb] sm:text-[1.75rem]">{bookingSteps[step]}</h3>
@@ -861,9 +858,14 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             </span>
                             <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
                               Я принимаю{" "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={ofertaHref}>
+                                <Link
+                                  prefetch
+                                  className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                  href={ofertaHref}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
                                   условия использования, политику конфиденциальности и публичную оферту
-                                </a>
+                                </Link>
                               .
                             </span>
                           </label>
@@ -896,9 +898,14 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             </span>
                             <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
                               Я даю согласие на{" "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={privacyHref}>
+                                <Link
+                                  prefetch
+                                  className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                  href={privacyHref}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
                                   обработку моих персональных данных
-                                </a>
+                                </Link>
                               .
                             </span>
                           </label>
@@ -997,8 +1004,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       )}
                     </div>
                   </div>
-                </motion.div>
-              </AnimatePresence>
+              </div>
 
               <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden">
                 <div className="mx-auto max-w-[780px] rounded-[26px] border border-[#d6c388]/28 bg-[rgba(12,25,15,.96)] p-3 shadow-[0_18px_40px_rgba(0,0,0,.35)] backdrop-blur-xl">

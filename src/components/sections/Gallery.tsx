@@ -73,13 +73,13 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
     urls: galleryImageUrls,
     isOpen: activeItem !== null,
     activeIndex,
-    immediateRadius: 3,
-    preloadAll: true,
+    immediateRadius: 1,
+    preloadAll: false,
   });
 
   return (
     <>
-      <section id="gallery" className="forest-section py-14 sm:py-16" style={{ backgroundImage: "url('/bg/grass2.png')" }}>
+      <section id="gallery" className="forest-section py-14 sm:py-16" style={{ backgroundImage: "url('/bg/grass2.webp')" }}>
         <div className="forest-overlay bg-[rgba(8,18,11,.58)]" />
 
         <div className="container-x section-content">
@@ -106,7 +106,7 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
                         src={item.src}
                         alt={item.alt}
                         fill
-                        priority={idx < 4}
+                        priority={idx < 2}
                         unoptimized
                         placeholder="blur"
                         blurDataURL={galleryImageBlurDataUrl}

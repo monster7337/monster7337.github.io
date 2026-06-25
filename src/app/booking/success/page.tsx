@@ -3,7 +3,7 @@ import BookingSuccessClient from "@/components/BookingSuccessClient";
 
 export default function BookingSuccessPage() {
   return (
-    <main className="forest-section min-h-screen py-16" style={{ backgroundImage: "url('/bg/grass1.png')" }}>
+    <main className="forest-section min-h-screen py-16" style={{ backgroundImage: "url('/bg/grass1.webp')" }}>
       <div className="forest-overlay bg-[rgba(7,17,10,.72)]" />
       <div className="container-x section-content">
         <div className="mx-auto max-w-3xl">

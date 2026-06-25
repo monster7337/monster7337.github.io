@@ -36,7 +36,7 @@ export default function About() {
     <section
       id="about"
       className="forest-section border-b-0 py-12 sm:py-16"
-      style={{ backgroundImage: "url('/bg/grass1.png')" }}
+      style={{ backgroundImage: "url('/bg/grass1.webp')" }}
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.58)]" />
 
@@ -93,8 +93,8 @@ export default function About() {
                   src="/bg/aboutus.webp"
                   alt="Интерьер антикафе В Ёлках"
                   fill
-                  priority
                   unoptimized
+                  loading="lazy"
                   className="object-cover"
                 />
               </div>

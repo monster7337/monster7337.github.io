@@ -29,7 +29,7 @@ export default function AnimalRules() {
     <section
       id="rules"
       className="forest-section py-12 sm:py-14"
-      style={{ backgroundImage: "url('/bg/grass2.png')" }}
+      style={{ backgroundImage: "url('/bg/grass2.webp')" }}
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.64)]" />
 

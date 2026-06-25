@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 
 type HeroProps = {
@@ -11,22 +10,16 @@ export default function Hero({ onOpenBooking }: HeroProps) {
   return (
     <section className="forest-section min-h-[100svh] border-t-0 sm:min-h-[calc(100svh-80px)]">
       <div className="absolute inset-0 overflow-hidden">
-        <Image
-          src="/bg/heromobile.webp?v=20260528c"
-          alt='Антикафе "В Ёлках"'
-          fill
-          unoptimized
-          priority
-          className="object-cover object-[50%_12%] sm:hidden"
-        />
-        <Image
-          src="/bg/hero.webp?v=20260507"
-          alt='Антикафе "В Ёлках"'
-          fill
-          unoptimized
-          priority
-          className="hidden object-cover object-[33%_42%] sm:block sm:-translate-x-[1%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-[52%_50%]"
-        />
+        <picture>
+          <source media="(min-width: 640px)" srcSet="/bg/hero.webp" />
+          <img
+            src="/bg/heromobile.webp"
+            alt='Антикафе "В Ёлках"'
+            fetchPriority="high"
+            decoding="async"
+            className="h-full w-full object-cover object-[50%_12%] sm:-translate-x-[1%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-[52%_50%]"
+          />
+        </picture>
       </div>
 
       <div className="forest-overlay bg-[rgba(7,17,10,.26)] sm:bg-[rgba(7,17,10,.36)]" />
@@ -37,16 +30,16 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.38 }}
               className="text-[8px] font-bold tracking-[0.14em] text-[#e7dbbb]/80 sm:text-[11px] sm:tracking-[0.18em] sm:text-[#e7dbbb]/82"
             >
-              АНТИКАФЕ "В ЁЛКАХ"
+              АНТИКАФЕ &quot;В ЁЛКАХ&quot;
             </motion.p>
 
             <motion.h1
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.06 }}
+              transition={{ duration: 0.4, delay: 0.04 }}
               className="mt-2 text-[1.12rem] font-black leading-[1.04] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:text-[1.88rem] sm:leading-[1.04]"
             >
               <span className="sm:hidden">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
@@ -56,17 +49,17 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.12 }}
+              transition={{ duration: 0.4, delay: 0.08 }}
               className="mx-auto mt-2 max-w-[228px] text-[0.68rem] font-semibold leading-[1.32] text-[#ffefc8]/90 sm:mt-3 sm:max-w-[410px] sm:text-[0.9rem] sm:font-bold sm:text-[#ffefc8]/94"
             >
-              <span className="sm:hidden">Чай, уют и живое общение с животными по предварительной записи.</span>
+              <span className="sm:hidden">ВНИМАНИЕ! ПОСЕЩЕНИЕ АНТИКАФЕ СТРОГО ПО ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ!</span>
               <span className="hidden sm:inline">ВНИМАНИЕ! ПОСЕЩЕНИЕ АНТИКАФЕ СТРОГО ПО ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ!</span>
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.18 }}
+              transition={{ duration: 0.4, delay: 0.12 }}
               className="mt-3 grid gap-2 sm:mt-5 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3"
             >
               <button className="btn-forest min-h-9 w-full px-4 text-[0.92rem] sm:min-h-10 sm:min-w-36 sm:w-auto sm:text-sm" onClick={onOpenBooking}>

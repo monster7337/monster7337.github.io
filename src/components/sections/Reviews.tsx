@@ -106,7 +106,7 @@ export default function Reviews() {
   const reveal = useScrollRevealMotion({ amount: 0.22, desktopDelayStep: 0.06, desktopDistance: 10 });
 
   return (
-    <section className="forest-section py-12 sm:py-14" style={{ backgroundImage: "url('/bg/grass2.png')" }}>
+    <section className="forest-section py-12 sm:py-14" style={{ backgroundImage: "url('/bg/grass2.webp')" }}>
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 
       <div className="container-x section-content">

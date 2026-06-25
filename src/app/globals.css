@@ -43,34 +43,18 @@ body {
 
 @keyframes ember-rise {
   0% {
-    transform: translate3d(0, 24px, 0) scale(0.65);
+    transform: translate3d(0, 24px, 0) scale(0.7);
     opacity: 0;
   }
-  12% {
+  16% {
     opacity: 0.55;
   }
-  68% {
-    opacity: 0.3;
+  72% {
+    opacity: 0.28;
   }
   100% {
-    transform: translate3d(var(--drift-x, 12px), -340px, 0) scale(1.1);
+    transform: translate3d(var(--drift-x, 12px), -300px, 0) scale(1.05);
     opacity: 0;
-  }
-}
-
-@keyframes ember-flicker {
-  0%,
-  100% {
-    opacity: 0.52;
-    filter: brightness(1);
-  }
-  35% {
-    opacity: 0.95;
-    filter: brightness(1.34);
-  }
-  70% {
-    opacity: 0.62;
-    filter: brightness(1.02);
   }
 }
 
@@ -79,29 +63,17 @@ body {
     transform: translate3d(0, 0, 0);
     opacity: 0;
   }
-  20% {
-    opacity: 0.52;
+  24% {
+    opacity: 0.5;
   }
   100% {
-    transform: translate3d(var(--drift-x, 6px), -24px, 0);
+    transform: translate3d(var(--drift-x, 6px), -22px, 0);
     opacity: 0;
   }
 }
 
-@keyframes mobile-booking-pulse {
-  0%,
-  100% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 20px rgba(0, 0, 0, 0.24);
-    transform: translateY(0);
-  }
-  50% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 12px 28px rgba(95, 131, 55, 0.26);
-    transform: translateY(-1px);
-  }
-}
-
 .mobile-booking-pulse {
-  animation: mobile-booking-pulse 2.8s ease-in-out infinite;
+  animation: none;
 }
 
 @layer components {
@@ -204,7 +176,20 @@ body {
     font-size: 14px;
   }
 
-  .mobile-booking-pulse {
-    animation-duration: 2.5s;
+}
+
+main > section:not(:first-of-type) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 760px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

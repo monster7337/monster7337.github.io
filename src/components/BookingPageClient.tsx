@@ -26,7 +26,7 @@ export default function BookingPageClient() {
       />
       <section
         className="forest-section border-b-0 border-t-0 py-10 sm:py-12"
-        style={{ backgroundImage: "url('/bg/grass1.png')" }}
+        style={{ backgroundImage: "url('/bg/grass1.webp')" }}
       >
         <div className="forest-overlay bg-[rgba(7,17,10,.66)]" />
         <div className="container-x section-content">

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
+import Differences from "@/components/sections/Differences";
 import Pricing from "@/components/sections/Pricing";
 import Animals from "@/components/sections/Animals";
 import VisitFlow from "@/components/sections/VisitFlow";
@@ -28,6 +29,7 @@ export default function Page() {
       <Navbar onOpenBooking={() => openBooking()} />
       <Hero onOpenBooking={() => openBooking()} />
       <About />
+      <Differences />
       <Pricing onOpenBooking={openBooking} />
       <Animals onOpenBooking={() => openBooking()} />
       <VisitFlow />

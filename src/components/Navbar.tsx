@@ -14,6 +14,7 @@ type NavbarProps = {
 
 const navSections = [
   { label: "О нас", href: "#about" },
+  { label: "Отличия", href: "#differences" },
   { label: "Тарифы", href: "#pricing" },
   { label: "Галерея", href: "#gallery" },
   { label: "Контакты", href: "#contacts" },
@@ -27,6 +28,7 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "" }: NavbarPro
       ...item,
       href: `${homeHrefPrefix}${item.href}`,
     })),
+    { label: "Сертификаты", href: "/gift-certificates" },
     { label: "Запись", href: "/booking" },
   ];
 
@@ -64,7 +66,7 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "" }: NavbarPro
         <div className="container-x">
           <div className="hidden h-20 items-center justify-between gap-5 md:flex">
             <Link href={logoHref} className="flex min-w-0 items-center gap-4">
-              <Image src="/logo/logo.png" alt='Логотип "В Ёлках"' width={68} height={68} className="h-[68px] w-[68px] object-contain" />
+              <Image src="/logo/logo.webp" alt='Логотип "В Ёлках"' width={68} height={68} className="h-[68px] w-[68px] object-contain" />
               <div className="min-w-0 leading-none">
                 <div className="truncate text-[2.05rem] font-black tracking-tight text-[#f6efde]">В Ёлках</div>
                 <div className="text-[11px] text-[#ede4cc]/80">Антикафе с белками и минипигами</div>

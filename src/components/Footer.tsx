@@ -1,3 +1,4 @@
+import { Clock3, MapPin, Phone, Send, CircleUserRound } from "lucide-react";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 
 type FooterProps = {
@@ -8,7 +9,9 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
   const navigationLinks = [
     { label: "Главная", href: homeHrefPrefix || "#" },
     { label: "О нас", href: `${homeHrefPrefix}#about` },
+    { label: "Отличия", href: `${homeHrefPrefix}#differences` },
     { label: "Тарифы", href: `${homeHrefPrefix}#pricing` },
+    { label: "Сертификаты", href: "/gift-certificates" },
     { label: "Галерея", href: `${homeHrefPrefix}#gallery` },
     { label: "Запись", href: "/booking" },
     { label: "Контакты", href: `${homeHrefPrefix}#contacts` },
@@ -60,30 +63,45 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
           <div>
             <h3 className="text-[0.82rem] font-bold uppercase tracking-[0.18em] text-[#e8d9b4]">Контакты</h3>
             <div className="mt-4 grid gap-2 text-[0.95rem]">
-              <a className="rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#f6efdb] transition hover:border-[#d6c388]/44" href={BOOKING_CONTACTS.phoneHref}>
-                {BOOKING_CONTACTS.phone}
+              <a className="flex items-center gap-3 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#f6efdb] transition hover:border-[#d6c388]/44" href={BOOKING_CONTACTS.phoneHref}>
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                  <Phone size={14} />
+                </span>
+                <span>{BOOKING_CONTACTS.phone}</span>
               </a>
               <a
-                className="rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#f6efdb] transition hover:border-[#d6c388]/44"
+                className="flex items-center gap-3 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#f6efdb] transition hover:border-[#d6c388]/44"
                 href={BOOKING_CONTACTS.telegramHref}
                 target="_blank"
                 rel="noreferrer"
               >
-                Telegram: {BOOKING_CONTACTS.telegramLabel}
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                  <Send size={14} />
+                </span>
+                <span>Telegram: {BOOKING_CONTACTS.telegramLabel}</span>
               </a>
               <a
-                className="rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#f6efdb] transition hover:border-[#d6c388]/44"
+                className="flex items-center gap-3 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#f6efdb] transition hover:border-[#d6c388]/44"
                 href={BOOKING_CONTACTS.vkHref}
                 target="_blank"
                 rel="noreferrer"
               >
-                VK: {BOOKING_CONTACTS.vkLabel}
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                  <CircleUserRound size={14} />
+                </span>
+                <span>VK: {BOOKING_CONTACTS.vkLabel}</span>
               </a>
-              <div className="rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#efe4c8]/82">
-                {BOOKING_CONTACTS.address}
+              <div className="flex items-center gap-3 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#efe4c8]/82">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                  <MapPin size={14} />
+                </span>
+                <span>{BOOKING_CONTACTS.address}</span>
               </div>
-              <div className="rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#efe4c8]/82">
-                {BOOKING_CONTACTS.hours}
+              <div className="flex items-center gap-3 rounded-2xl border border-[#d6c388]/24 bg-[rgba(255,255,255,.04)] px-3 py-2 text-[#efe4c8]/82">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                  <Clock3 size={14} />
+                </span>
+                <span>{BOOKING_CONTACTS.hours}</span>
               </div>
               <a className="btn-forest mt-2 min-h-[44px] w-full" href="/booking">
                 Перейти к записи
@@ -97,6 +115,18 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
         <div className="container-x flex flex-col gap-2 py-4 text-[0.8rem] text-[#efe4c8]/68 sm:flex-row sm:items-center sm:justify-between">
           <span>В Ёлках, {new Date().getFullYear()}</span>
           <span>{BOOKING_CONTACTS.note}</span>
+        </div>
+      </div>
+
+      <div className="border-t border-[#d6c388]/10 bg-[rgba(255,255,255,.02)]">
+        <div className="container-x py-4 sm:py-5">
+          <div className="flex flex-col gap-2 text-[0.76rem] leading-[1.55] text-[#efe4c8]/64 sm:text-[0.8rem]">
+            <div>{BOOKING_CONTACTS.legalName}</div>
+            <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+              <span>ИНН {BOOKING_CONTACTS.inn}</span>
+              <span>ОГРН {BOOKING_CONTACTS.ogrn}</span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

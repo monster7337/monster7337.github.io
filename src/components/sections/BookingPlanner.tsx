@@ -18,6 +18,7 @@ import { BOOKING_CONTACTS, BOOKING_TICKETS, BookingTicketId, formatCurrency } fr
 import { DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
 
 const BOOKING_PREPAYMENT_PER_GUEST = 500;
+const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
 
 const bookingSteps = ["Билеты", "Дата", "Время", "Контакты", "Подтверждение"];
 const bookingStepNotes = [
@@ -46,6 +47,11 @@ type ContactValues = {
   phone: string;
   email: string;
   comment: string;
+};
+
+type ConsentValues = {
+  terms: boolean;
+  personalData: boolean;
 };
 
 type SelectedTicket = (typeof BOOKING_TICKETS)[number] & {
@@ -187,6 +193,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const [activeInfoRateId, setActiveInfoRateId] = useState<BookingTicketId | null>(initialTicketId ?? null);
   const [contactValues, setContactValues] = useState<ContactValues>({ name: "", phone: "", email: "", comment: "" });
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ContactValues, string>>>({});
+  const [consentValues, setConsentValues] = useState<ConsentValues>({ terms: false, personalData: false });
+  const [consentErrors, setConsentErrors] = useState<Partial<Record<keyof ConsentValues, string>>>({});
   const [stepError, setStepError] = useState("");
   const [storageSnapshot, setStorageSnapshot] = useState(getStorageSnapshot);
 
@@ -202,6 +210,57 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     window.addEventListener("storage", syncStorage);
     return () => window.removeEventListener("storage", syncStorage);
   }, []);
+
+  useEffect(() => {
+    const raw = window.sessionStorage.getItem(BOOKING_DRAFT_STORAGE_KEY);
+    if (!raw) return;
+
+    try {
+      const draft = JSON.parse(raw) as {
+        step?: number;
+        selectedDateId?: string;
+        selectedTime?: string;
+        selectedRateQuantities?: Partial<Record<BookingTicketId, number>>;
+        contactValues?: ContactValues;
+        consentValues?: ConsentValues;
+      };
+
+      if (draft.selectedDateId && dateOptions.some((item) => item.id === draft.selectedDateId)) {
+        setSelectedDateId(draft.selectedDateId);
+      }
+      if (draft.selectedTime && FIXED_SLOT_TIMES.includes(draft.selectedTime)) {
+        setSelectedTime(draft.selectedTime);
+      }
+      if (draft.selectedRateQuantities) {
+        setSelectedRateQuantities(draft.selectedRateQuantities);
+      }
+      if (draft.contactValues) {
+        setContactValues(draft.contactValues);
+      }
+      if (draft.consentValues) {
+        setConsentValues(draft.consentValues);
+      }
+      if (typeof draft.step === "number") {
+        setStep(Math.max(0, Math.min(bookingSteps.length - 1, draft.step)));
+      }
+    } catch {
+      window.sessionStorage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
+    }
+  }, [dateOptions]);
+
+  useEffect(() => {
+    window.sessionStorage.setItem(
+      BOOKING_DRAFT_STORAGE_KEY,
+      JSON.stringify({
+        step,
+        selectedDateId,
+        selectedTime,
+        selectedRateQuantities,
+        contactValues,
+        consentValues,
+      })
+    );
+  }, [consentValues, contactValues, selectedDateId, selectedRateQuantities, selectedTime, step]);
 
   const selectedTickets = useMemo<SelectedTicket[]>(() => {
     return BOOKING_TICKETS.map((ticket) => {
@@ -323,14 +382,30 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     }
   }
 
+  function updateConsentField(field: keyof ConsentValues, value: boolean) {
+    resetStatuses();
+    setConsentValues((current) => ({ ...current, [field]: value }));
+    if (consentErrors[field]) {
+      setConsentErrors((current) => {
+        const next = { ...current };
+        delete next[field];
+        return next;
+      });
+    }
+  }
+
   function validateContacts() {
     const nextErrors: Partial<Record<keyof ContactValues, string>> = {};
+    const nextConsentErrors: Partial<Record<keyof ConsentValues, string>> = {};
     if (contactValues.name.trim().length < 2) nextErrors.name = "Укажите имя";
     if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) nextErrors.phone = "Укажите телефон корректно";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactValues.email.trim())) nextErrors.email = "Укажите email корректно";
     if (contactValues.comment.trim().length > 280) nextErrors.comment = "Комментарий должен быть короче 280 символов";
+    if (!consentValues.terms) nextConsentErrors.terms = "Подтвердите условия использования, политику конфиденциальности и публичную оферту";
+    if (!consentValues.personalData) nextConsentErrors.personalData = "Подтвердите согласие на обработку персональных данных";
     setFieldErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    setConsentErrors(nextConsentErrors);
+    return Object.keys(nextErrors).length === 0 && Object.keys(nextConsentErrors).length === 0;
   }
 
   async function finalizeBooking() {
@@ -396,12 +471,16 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
         phone: contactValues.phone,
       });
 
+      window.sessionStorage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
       router.push(`/booking/success?${params.toString()}`);
     } catch (error) {
       setStep(2);
       setStepError(error instanceof Error ? error.message : "Не удалось сохранить запись.");
     }
   }
+
+  const ofertaHref = `/oferta?returnTo=${encodeURIComponent("/booking")}`;
+  const privacyHref = `/privacy?returnTo=${encodeURIComponent("/booking")}`;
 
   function goToStep(nextStep: number) {
     resetStatuses();
@@ -444,7 +523,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     <section
       id="booking"
       className="forest-section scroll-mt-24 py-10 pb-32 sm:py-12 sm:pb-36 lg:py-14 lg:pb-14"
-      style={{ backgroundImage: "url('/bg/grass2.png')" }}
+      style={{ backgroundImage: "url('/bg/grass2.webp')" }}
     >
       <div className="forest-overlay bg-[rgba(8,18,11,.72)]" />
 
@@ -752,7 +831,81 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       </div>
 
                       <div className="mt-3 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
-                        После отправки заявки мы свяжемся с вами, чтобы подтвердить запись и детали визита.
+                        Проверьте данные перед отправкой заявки: дата, время и выбранные билеты будут указаны в бронировании.
+                      </div>
+
+                      <div className="mt-4 space-y-3">
+                        <div
+                          className={clsx(
+                            "rounded-[22px] border bg-[rgba(255,255,255,.05)] p-4 transition",
+                            consentErrors.terms ? "border-[#c97f7f]/55 bg-[rgba(120,38,38,.18)]" : "border-[#d6c388]/18"
+                          )}
+                        >
+                          <input
+                            id="booking-terms-consent"
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={consentValues.terms}
+                            onChange={(event) => updateConsentField("terms", event.target.checked)}
+                          />
+                          <label htmlFor="booking-terms-consent" className="flex cursor-pointer items-start gap-3">
+                            <span
+                              className={clsx(
+                                "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[8px] border transition",
+                                consentValues.terms
+                                  ? "border-[#a7c873] bg-[linear-gradient(180deg,#8cb85b_0%,#5f8337_100%)] text-[#f7efdc]"
+                                  : "border-[#d6c388]/55 bg-[rgba(255,255,255,.04)] text-transparent"
+                              )}
+                            >
+                              <Check size={14} />
+                            </span>
+                            <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
+                              Я принимаю{" "}
+                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={ofertaHref}>
+                                  условия использования, политику конфиденциальности и публичную оферту
+                                </a>
+                              .
+                            </span>
+                          </label>
+                          {consentErrors.terms ? <span className="mt-2 block pl-9 text-[0.76rem] text-[#ffb3b3]">{consentErrors.terms}</span> : null}
+                        </div>
+
+                        <div
+                          className={clsx(
+                            "rounded-[22px] border bg-[rgba(255,255,255,.05)] p-4 transition",
+                            consentErrors.personalData ? "border-[#c97f7f]/55 bg-[rgba(120,38,38,.18)]" : "border-[#d6c388]/18"
+                          )}
+                        >
+                          <input
+                            id="booking-personal-data-consent"
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={consentValues.personalData}
+                            onChange={(event) => updateConsentField("personalData", event.target.checked)}
+                          />
+                          <label htmlFor="booking-personal-data-consent" className="flex cursor-pointer items-start gap-3">
+                            <span
+                              className={clsx(
+                                "mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[8px] border transition",
+                                consentValues.personalData
+                                  ? "border-[#a7c873] bg-[linear-gradient(180deg,#8cb85b_0%,#5f8337_100%)] text-[#f7efdc]"
+                                  : "border-[#d6c388]/55 bg-[rgba(255,255,255,.04)] text-transparent"
+                              )}
+                            >
+                              <Check size={14} />
+                            </span>
+                            <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
+                              Я даю согласие на{" "}
+                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={privacyHref}>
+                                  обработку моих персональных данных
+                                </a>
+                              .
+                            </span>
+                          </label>
+                          {consentErrors.personalData ? (
+                            <span className="mt-2 block pl-9 text-[0.76rem] text-[#ffb3b3]">{consentErrors.personalData}</span>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   ) : null}
@@ -899,10 +1052,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 </div>
 
                 <div className="mt-5 rounded-[22px] border border-[#8fad5e]/34 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.18)_100%)] px-4 py-4 text-[0.84rem] leading-[1.45] text-[#edf6df]">
-                  После заявки с вами свяжется администратор. Телефон для быстрой связи:{" "}
-                  <a className="font-semibold text-[#f7efdc]" href={BOOKING_CONTACTS.phoneHref}>
-                    {BOOKING_CONTACTS.phone}
-                  </a>
+                  Визит проходит по фиксированным слотам и длится 1 час. Пожалуйста, проверьте дату, время и состав билетов перед оплатой.
                 </div>
 
                 <div className="mt-4 grid gap-2">

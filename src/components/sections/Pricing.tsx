@@ -1,16 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  BadgePercent,
-  Clock3,
-  Leaf,
-  MapPin,
-  ShieldCheck,
-  Star,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BadgePercent, Clock3, Gift, Leaf, MapPin, ShieldCheck, Star, Users } from "lucide-react";
+import Link from "next/link";
 import { BOOKING_TICKETS, BOOKING_CONTACTS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
 import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 
@@ -39,7 +31,7 @@ export default function Pricing({ onOpenBooking }: PricingProps) {
     <section
       id="pricing"
       className="forest-section py-14 sm:py-16"
-      style={{ backgroundImage: "url('/bg/grass1.png')" }}
+      style={{ backgroundImage: "url('/bg/grass1.webp')" }}
     >
       <div className="forest-overlay bg-[rgba(8,18,11,.6)]" />
 
@@ -139,6 +131,27 @@ export default function Pricing({ onOpenBooking }: PricingProps) {
               </motion.article>
             );
           })}
+        </div>
+
+        <div className="mt-5 sm:mt-7">
+          <div className="rounded-[24px] border border-[#d6c388]/28 bg-[linear-gradient(180deg,rgba(20,42,14,.86)_0%,rgba(11,23,10,.96)_100%)] p-4 shadow-[0_16px_32px_rgba(0,0,0,.26)] sm:p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="max-w-[620px]">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-3 py-1 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-[#e8d9b4]">
+                  <Gift size={14} />
+                  Подарочный сертификат
+                </div>
+                <div className="mt-3 text-[1.08rem] font-black text-[#f6efdb] sm:text-[1.28rem]">Можно оформить сертификат на посещение для 1-12 гостей</div>
+                <p className="mt-2 text-[0.84rem] leading-[1.55] text-[#efe4c8]/82 sm:text-[0.94rem]">
+                  Удобный подарок для пары, семьи или компании. Стоимость рассчитывается по количеству гостей, а сертификат оплачивается полностью сразу.
+                </p>
+              </div>
+
+              <Link className="btn-cream min-h-[46px] shrink-0 px-5" href="/gift-certificates">
+                Купить сертификат
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

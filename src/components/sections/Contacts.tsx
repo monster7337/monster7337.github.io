@@ -1,4 +1,4 @@
-import { AtSign, Clock3, MapPin, MessageCircle, Phone, Send } from "lucide-react";
+import { Clock3, MapPin, MessageCircle, Phone, Send, CircleUserRound } from "lucide-react";
 import Image from "next/image";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 
@@ -14,7 +14,7 @@ export default function Contacts() {
     <section
       id="contacts"
       className="forest-section border-b-0 py-10 sm:py-12"
-      style={{ backgroundImage: "url('/bg/grass3.png')" }}
+      style={{ backgroundImage: "url('/bg/grass3.webp')" }}
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 
@@ -27,22 +27,36 @@ export default function Contacts() {
             </p>
             <div className="mt-4 hidden h-px bg-[#efe0bc]/24 lg:block" />
             <ul className="mt-6 hidden space-y-3 text-[0.98rem] text-[#f2e9d4]/92 lg:block">
-              <li className="flex items-center gap-3">
-                <Phone size={17} />
+              <li className="flex items-center gap-3 rounded-[18px] border border-[#d6c388]/22 bg-[rgba(7,17,10,.46)] px-3 py-2.5">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/32 bg-[rgba(255,255,255,.08)] text-[#f2d28c]">
+                  <Phone size={17} />
+                </span>
                 <a className="hover:text-white" href={BOOKING_CONTACTS.phoneHref}>
                   {BOOKING_CONTACTS.phone}
                 </a>
               </li>
-              <li className="flex items-center gap-3">
-                <AtSign size={17} /> {BOOKING_CONTACTS.telegramLabel}
+              <li className="flex items-center gap-3 rounded-[18px] border border-[#d6c388]/22 bg-[rgba(7,17,10,.46)] px-3 py-2.5">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/32 bg-[rgba(255,255,255,.08)] text-[#f2d28c]">
+                  <Send size={17} />
+                </span>
+                <a className="hover:text-white" href={BOOKING_CONTACTS.telegramHref} target="_blank" rel="noopener noreferrer">
+                  {BOOKING_CONTACTS.telegramLabel}
+                </a>
               </li>
-              <li className="flex items-center gap-3">
-                <MapPin size={17} /> {BOOKING_CONTACTS.address}
+              <li className="flex items-center gap-3 rounded-[18px] border border-[#d6c388]/22 bg-[rgba(7,17,10,.46)] px-3 py-2.5">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/32 bg-[rgba(255,255,255,.08)] text-[#f2d28c]">
+                  <MapPin size={17} />
+                </span>
+                {BOOKING_CONTACTS.address}
               </li>
-              <li className="flex items-center gap-3">
-                <Clock3 size={17} /> {BOOKING_CONTACTS.hours}
+              <li className="flex items-center gap-3 rounded-[18px] border border-[#d6c388]/22 bg-[rgba(7,17,10,.46)] px-3 py-2.5">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d6c388]/32 bg-[rgba(255,255,255,.08)] text-[#f2d28c]">
+                  <Clock3 size={17} />
+                </span>
+                {BOOKING_CONTACTS.hours}
               </li>
             </ul>
+
           </div>
 
           <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:block">
@@ -85,7 +99,10 @@ export default function Contacts() {
                   rel="noopener noreferrer"
                 >
                   <span className="inline-flex items-center gap-2">
-                    <Send size={14} /> Telegram: {BOOKING_CONTACTS.telegramLabel}
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                      <Send size={14} />
+                    </span>
+                    Telegram: {BOOKING_CONTACTS.telegramLabel}
                   </span>
                 </a>
                 <a
@@ -95,7 +112,10 @@ export default function Contacts() {
                   rel="noopener noreferrer"
                 >
                   <span className="inline-flex items-center gap-2">
-                    <MessageCircle size={14} /> VK: {BOOKING_CONTACTS.vkLabel}
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#f2d28c]">
+                      <CircleUserRound size={14} />
+                    </span>
+                    VK: {BOOKING_CONTACTS.vkLabel}
                   </span>
                 </a>
               </div>

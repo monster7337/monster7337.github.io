@@ -3,9 +3,9 @@
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { Camera, Check, CircleAlert, Gift, Mail, MessageCircle, Minus, Plus, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import * as adminData from "@/components/admin/admin-data";
+import { createPaykeeperInvoice } from "@/lib/paykeeperClient";
 
 const GIFT_GUEST_MIN = 1;
 const GIFT_GUEST_MAX = 12;
@@ -18,7 +18,9 @@ const { formatCurrency, giftDeliveryOptions, saveGiftCertificatePurchase } = adm
   saveGiftCertificatePurchase: (values: Record<string, unknown>) => {
     id: string;
     amount: number;
+    purchaserName: string;
     purchaserPhone: string;
+    purchaserEmail: string;
     recipientName: string;
     certificateTitle: string;
     purchaseDate: string;
@@ -87,7 +89,6 @@ function DeliveryIcon({ method }: { method: string }) {
 }
 
 export default function GiftCertificateOrderForm() {
-  const router = useRouter();
   const [step, setStep] = useState(0);
   const [guestCount, setGuestCount] = useState(1);
   const [stepError, setStepError] = useState("");
@@ -254,9 +255,18 @@ export default function GiftCertificateOrderForm() {
         phone: order.purchaserPhone,
         recipient: order.recipientName,
       });
+      const invoice = await createPaykeeperInvoice({
+        amount: order.amount,
+        orderId: order.id,
+        clientName: order.purchaserName,
+        clientEmail: order.purchaserEmail,
+        clientPhone: order.purchaserPhone,
+        serviceName: `В Ёлках: ${order.certificateTitle}`,
+        successPath: `/booking/success?${params.toString()}`,
+      });
 
       window.sessionStorage.removeItem(GIFT_DRAFT_STORAGE_KEY);
-      router.push(`/booking/success?${params.toString()}`);
+      window.location.assign(invoice.paymentUrl);
     } catch (error) {
       setStepError(error instanceof Error ? error.message : "Не удалось оформить сертификат.");
     } finally {

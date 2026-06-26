@@ -16,6 +16,7 @@ import {
 } from "@/components/admin/admin-data";
 import { BOOKING_CONTACTS, BOOKING_TICKETS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
 import { DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
+import { createPaykeeperInvoice } from "@/lib/paykeeperClient";
 
 const BOOKING_PREPAYMENT_PER_GUEST = 500;
 const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
@@ -196,6 +197,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const [consentValues, setConsentValues] = useState<ConsentValues>({ terms: false, personalData: false });
   const [consentErrors, setConsentErrors] = useState<Partial<Record<keyof ConsentValues, string>>>({});
   const [stepError, setStepError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [storageSnapshot, setStorageSnapshot] = useState(getStorageSnapshot);
 
   const selectedDate = dateOptions.find((item) => item.id === selectedDateId) ?? null;
@@ -416,6 +418,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   async function finalizeBooking() {
     resetStatuses();
 
+    if (isSubmitting) {
+      return;
+    }
+
     if (!selectedTickets.length) {
       setStep(0);
       setStepError("Добавьте хотя бы один билет перед отправкой.");
@@ -453,6 +459,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     );
 
     try {
+      setIsSubmitting(true);
       const appointment = savePublicBooking({
         clientName: contactValues.name,
         phone: contactValues.phone,
@@ -471,16 +478,27 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
         time: selectedTimeLabel,
         tickets: String(totalTicketsCount),
         total: formatCurrency(total),
-        prepayment: formatCurrency(appointment.prepaymentAmount),
-        remaining: formatCurrency(appointment.remainingAmount),
+        prepayment: formatCurrency(prepaymentNow),
+        remaining: formatCurrency(remainingOnSite),
         phone: contactValues.phone,
+      });
+      const invoice = await createPaykeeperInvoice({
+        amount: prepaymentNow,
+        orderId: appointment.id,
+        clientName: contactValues.name,
+        clientEmail: contactValues.email,
+        clientPhone: contactValues.phone,
+        serviceName: `В Ёлках: бронь ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")}`,
+        successPath: `/booking/success?${params.toString()}`,
       });
 
       window.sessionStorage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
-      router.push(`/booking/success?${params.toString()}`);
+      window.location.assign(invoice.paymentUrl);
     } catch (error) {
       setStep(2);
       setStepError(error instanceof Error ? error.message : "Не удалось сохранить запись.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -990,7 +1008,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       <div className="mt-1 text-[0.86rem] font-bold text-[#f6efdb]">{mobileSelectionNote}</div>
                     </div>
                     <div className="flex gap-2">
-                      <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
+                      <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
                         Назад
                       </button>
                       {step < bookingSteps.length - 1 ? (
@@ -998,7 +1016,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                           Продолжить
                         </button>
                       ) : (
-                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking}>
+                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking} disabled={isSubmitting}>
                           Оплатить
                         </button>
                       )}
@@ -1017,7 +1035,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
+                    <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
                       Назад
                     </button>
                     {step < bookingSteps.length - 1 ? (
@@ -1025,7 +1043,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         Продолжить
                       </button>
                     ) : (
-                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking}>
+                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking} disabled={isSubmitting}>
                         Оплатить
                       </button>
                     )}

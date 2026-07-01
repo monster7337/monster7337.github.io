@@ -99,7 +99,13 @@ export default function BookingRulesGate() {
 
       const url = new URL(anchor.href, window.location.href);
 
-      if (url.origin !== window.location.origin || !isGatedPath(url.pathname)) {
+      const targetPathname = url.pathname;
+
+      if (url.origin !== window.location.origin || !isGatedPath(targetPathname)) {
+        return;
+      }
+
+      if (pathname === targetPathname) {
         return;
       }
 
@@ -117,22 +123,6 @@ export default function BookingRulesGate() {
       document.removeEventListener("click", handleDocumentClick, true);
     };
   }, [pathname]);
-
-  useEffect(() => {
-    if (!pathname || !isGatedPath(pathname) || isOpen) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setPendingHref(pathname);
-      setAcceptedRules(rules.map(() => false));
-      setIsOpen(true);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [isOpen, pathname]);
 
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
@@ -159,11 +149,6 @@ export default function BookingRulesGate() {
             className="absolute inset-0 border-0 bg-[radial-gradient(circle_at_top,rgba(236,214,156,.14),transparent_34%),rgba(4,12,7,.72)] backdrop-blur-md"
             aria-label="Закрыть окно с правилами"
             onClick={() => {
-              if (pathname && isGatedPath(pathname)) {
-                router.push("/");
-                return;
-              }
-
               setAcceptedRules(rules.map(() => false));
               setIsOpen(false);
             }}
@@ -188,11 +173,6 @@ export default function BookingRulesGate() {
             <button
               type="button"
               onClick={() => {
-                if (pathname && isGatedPath(pathname)) {
-                  router.push("/");
-                  return;
-                }
-
                 setAcceptedRules(rules.map(() => false));
                 setIsOpen(false);
               }}
@@ -257,11 +237,6 @@ export default function BookingRulesGate() {
               <button
                 type="button"
                 onClick={() => {
-                  if (pathname && isGatedPath(pathname)) {
-                    router.push("/");
-                    return;
-                  }
-
                   setAcceptedRules(rules.map(() => false));
                   setIsOpen(false);
                 }}

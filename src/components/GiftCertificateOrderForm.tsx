@@ -617,15 +617,15 @@ export default function GiftCertificateOrderForm() {
                               </span>
                               <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
                                 Я принимаю{" "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={siteTermsHref}>
+                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={siteTermsHref}>
                                   условия использования
                                 </a>
                                 {", "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={privacyHref}>
+                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={privacyHref}>
                                   политику конфиденциальности
                                 </a>
                                 {" "}и{" "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={publicOfferHref}>
+                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={publicOfferHref}>
                                   публичную оферту
                                 </a>
                                 .
@@ -660,15 +660,15 @@ export default function GiftCertificateOrderForm() {
                               </span>
                               <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
                                 Я принимаю{" "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={siteTermsHref}>
+                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={siteTermsHref}>
                                   условия использования
                                 </a>
                                 {", "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={privacyHref}>
+                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={privacyHref}>
                                   политику конфиденциальности
                                 </a>
                                 {" "}и{" "}
-                                <a className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white" href={publicOfferHref}>
+                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={publicOfferHref}>
                                   публичную оферту
                                 </a>
                                 .

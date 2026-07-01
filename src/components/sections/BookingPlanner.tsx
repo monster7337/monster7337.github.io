@@ -880,7 +880,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               Я принимаю{" "}
                               <Link
                                 prefetch
-                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
                                 href={siteTermsHref}
                                 onClick={(event) => event.stopPropagation()}
                               >
@@ -889,7 +889,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               {", "}
                               <Link
                                 prefetch
-                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
                                 href={privacyHref}
                                 onClick={(event) => event.stopPropagation()}
                               >
@@ -898,7 +898,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               {" "}и{" "}
                               <Link
                                 prefetch
-                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
                                 href={publicOfferHref}
                                 onClick={(event) => event.stopPropagation()}
                               >
@@ -938,7 +938,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               Я принимаю{" "}
                               <Link
                                 prefetch
-                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
                                 href={siteTermsHref}
                                 onClick={(event) => event.stopPropagation()}
                               >
@@ -947,7 +947,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               {", "}
                               <Link
                                 prefetch
-                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
                                 href={privacyHref}
                                 onClick={(event) => event.stopPropagation()}
                               >
@@ -956,7 +956,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               {" "}и{" "}
                               <Link
                                 prefetch
-                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
                                 href={publicOfferHref}
                                 onClick={(event) => event.stopPropagation()}
                               >

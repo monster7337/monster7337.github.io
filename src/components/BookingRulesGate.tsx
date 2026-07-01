@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Leaf, PawPrint, ShieldCheck, Sparkles, X } from "lucide-react";
 
 const OPEN_EVENT = "v-elkah:booking-gate-open";
+const ACCEPTED_STORAGE_KEY = "v-elkah:rules-accepted";
 
 const rules = [
   "Помните: вы в гостях у животных, а не на аттракционе. Капибар нельзя принуждать к общению — слушайте иструкторов, чтобы всем было комфортно.",
@@ -22,8 +23,29 @@ export function requestBookingGate(href = "/booking") {
   window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: { href } }));
 }
 
-function isBookingPath(pathname: string) {
-  return pathname === "/booking";
+function isGatedPath(pathname: string) {
+  return pathname === "/booking" || pathname === "/gift-certificates";
+}
+
+function getStoredAcceptance() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.sessionStorage.getItem(ACCEPTED_STORAGE_KEY) === "true";
+}
+
+function storeAcceptance(value: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (value) {
+    window.sessionStorage.setItem(ACCEPTED_STORAGE_KEY, "true");
+    return;
+  }
+
+  window.sessionStorage.removeItem(ACCEPTED_STORAGE_KEY);
 }
 
 export default function BookingRulesGate() {
@@ -32,6 +54,7 @@ export default function BookingRulesGate() {
   const [pendingHref, setPendingHref] = useState("/booking");
   const [isOpen, setIsOpen] = useState(false);
   const [acceptedRules, setAcceptedRules] = useState(() => rules.map(() => false));
+  const [hasAcceptedRules, setHasAcceptedRules] = useState(() => getStoredAcceptance());
 
   useEffect(() => {
     const html = document.documentElement;
@@ -99,11 +122,11 @@ export default function BookingRulesGate() {
 
       const url = new URL(anchor.href, window.location.href);
 
-      if (url.origin !== window.location.origin || !isBookingPath(url.pathname)) {
+      if (url.origin !== window.location.origin || !isGatedPath(url.pathname)) {
         return;
       }
 
-      if (pathname === "/booking" && url.pathname === "/booking") {
+      if (getStoredAcceptance()) {
         return;
       }
 
@@ -121,6 +144,22 @@ export default function BookingRulesGate() {
       document.removeEventListener("click", handleDocumentClick, true);
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (!pathname || hasAcceptedRules || !isGatedPath(pathname) || isOpen) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setPendingHref(pathname);
+      setAcceptedRules(rules.map(() => false));
+      setIsOpen(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [hasAcceptedRules, isOpen, pathname]);
 
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
@@ -146,7 +185,15 @@ export default function BookingRulesGate() {
             type="button"
             className="absolute inset-0 border-0 bg-[radial-gradient(circle_at_top,rgba(236,214,156,.14),transparent_34%),rgba(4,12,7,.72)] backdrop-blur-md"
             aria-label="Закрыть окно с правилами"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              if (pathname && isGatedPath(pathname) && !hasAcceptedRules) {
+                router.push("/");
+                return;
+              }
+
+              setAcceptedRules(rules.map(() => false));
+              setIsOpen(false);
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -168,6 +215,11 @@ export default function BookingRulesGate() {
             <button
               type="button"
               onClick={() => {
+                if (pathname && isGatedPath(pathname) && !hasAcceptedRules) {
+                  router.push("/");
+                  return;
+                }
+
                 setAcceptedRules(rules.map(() => false));
                 setIsOpen(false);
               }}
@@ -232,6 +284,11 @@ export default function BookingRulesGate() {
               <button
                 type="button"
                 onClick={() => {
+                  if (pathname && isGatedPath(pathname) && !hasAcceptedRules) {
+                    router.push("/");
+                    return;
+                  }
+
                   setAcceptedRules(rules.map(() => false));
                   setIsOpen(false);
                 }}
@@ -245,6 +302,8 @@ export default function BookingRulesGate() {
                   if (!allAccepted) {
                     return;
                   }
+                  storeAcceptance(true);
+                  setHasAcceptedRules(true);
                   setAcceptedRules(rules.map(() => false));
                   setIsOpen(false);
                   router.push(pendingHref);

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Clock3, MapPin, Phone, Send, CircleUserRound } from "lucide-react";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 
@@ -120,12 +121,21 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
 
       <div className="border-t border-[#d6c388]/10 bg-[rgba(255,255,255,.02)]">
         <div className="container-x py-4 sm:py-5">
-          <div className="flex flex-col gap-2 text-[0.76rem] leading-[1.55] text-[#efe4c8]/64 sm:text-[0.8rem]">
-            <div>{BOOKING_CONTACTS.legalName}</div>
-            <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-              <span>ИНН {BOOKING_CONTACTS.inn}</span>
-              <span>ОГРН {BOOKING_CONTACTS.ogrn}</span>
+          <p className="max-w-[860px] text-[0.76rem] leading-[1.6] text-[#efe4c8]/64 sm:text-[0.8rem]">
+            Все материалы и цены, размещенные на сайте, носят справочный характер и не являются публичной офертой,
+            определяемой положением Статьи 437(2) Гражданского кодекса Российской Федерации.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 text-[0.76rem] leading-[1.55] text-[#efe4c8]/64 sm:flex-row sm:items-end sm:justify-between sm:text-[0.8rem]">
+            <div className="flex flex-col gap-2">
+              <div>{BOOKING_CONTACTS.legalName}</div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                <span>ИНН {BOOKING_CONTACTS.inn}</span>
+                <span>ОГРН {BOOKING_CONTACTS.ogrn}</span>
+              </div>
             </div>
+            <Link href="/privacy" className="text-[0.82rem] text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
+              Политика конфиденциальности
+            </Link>
           </div>
         </div>
       </div>

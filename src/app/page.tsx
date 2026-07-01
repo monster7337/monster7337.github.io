@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
@@ -14,14 +13,13 @@ import Reviews from "@/components/sections/Reviews";
 import Contacts from "@/components/sections/Contacts";
 import FAQ from "@/components/sections/FAQ";
 import Footer from "@/components/Footer";
+import { requestBookingGate } from "@/components/BookingRulesGate";
 import { BookingTicketId } from "@/lib/bookingCatalog";
 import { buildBookingHref } from "@/lib/bookingHref";
 
 export default function Page() {
-  const router = useRouter();
-
   const openBooking = (nextDefaults?: { ticketId?: BookingTicketId; dateId?: string; time?: string }) => {
-    router.push(buildBookingHref(nextDefaults));
+    requestBookingGate(buildBookingHref(nextDefaults));
   };
 
   return (

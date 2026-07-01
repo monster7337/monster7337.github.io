@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { requestBookingGate } from "@/components/BookingRulesGate";
 import Footer from "@/components/Footer";
 import GiftCertificateOrderForm from "@/components/GiftCertificateOrderForm";
 import Navbar from "@/components/Navbar";
@@ -15,7 +16,7 @@ export default function GiftCertificatesPageClient() {
       <Navbar
         homeHrefPrefix="/"
         onOpenBooking={() => {
-          router.push(buildBookingHref());
+          requestBookingGate(buildBookingHref());
         }}
       />
       <section className="forest-section border-b-0 border-t-0 py-10 sm:py-12" style={{ backgroundImage: "url('/bg/grass1.webp')" }}>

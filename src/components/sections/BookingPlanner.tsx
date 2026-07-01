@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import clsx from "clsx";
 import { CalendarDays, Check, CircleAlert, Clock3, CreditCard, Info, Minus, Phone, Plus, ShoppingBag } from "lucide-react";
@@ -21,20 +21,20 @@ import { createPaykeeperInvoice } from "@/lib/paykeeperClient";
 const BOOKING_PREPAYMENT_PER_GUEST = 500;
 const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
 
-const bookingSteps = ["Билеты", "Дата", "Время", "Контакты", "Подтверждение"];
+const bookingSteps = ["Р‘РёР»РµС‚С‹", "Р”Р°С‚Р°", "Р’СЂРµРјСЏ", "РљРѕРЅС‚Р°РєС‚С‹", "РџРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ"];
 const bookingStepNotes = [
-  "Выберите билеты на посещение",
-  "Найдите удобный день визита",
-  "Выберите подходящий слот",
-  "Оставьте контакты для связи",
-  "Проверьте предоплату и детали",
+  "Р’С‹Р±РµСЂРёС‚Рµ Р±РёР»РµС‚С‹ РЅР° РїРѕСЃРµС‰РµРЅРёРµ",
+  "РќР°Р№РґРёС‚Рµ СѓРґРѕР±РЅС‹Р№ РґРµРЅСЊ РІРёР·РёС‚Р°",
+  "Р’С‹Р±РµСЂРёС‚Рµ РїРѕРґС…РѕРґСЏС‰РёР№ СЃР»РѕС‚",
+  "РћСЃС‚Р°РІСЊС‚Рµ РєРѕРЅС‚Р°РєС‚С‹ РґР»СЏ СЃРІСЏР·Рё",
+  "РџСЂРѕРІРµСЂСЊС‚Рµ РїСЂРµРґРѕРїР»Р°С‚Сѓ Рё РґРµС‚Р°Р»Рё",
 ];
 
 const tariffMap: Record<BookingTicketId, string> = {
-  standard: "Обычный билет",
-  family: "Семейный билет",
-  social: "Льготный билет",
-  "happy-hour": "Счастливый час",
+  standard: "РћР±С‹С‡РЅС‹Р№ Р±РёР»РµС‚",
+  family: "РЎРµРјРµР№РЅС‹Р№ Р±РёР»РµС‚",
+  social: "Р›СЊРіРѕС‚РЅС‹Р№ Р±РёР»РµС‚",
+  "happy-hour": "РЎС‡Р°СЃС‚Р»РёРІС‹Р№ С‡Р°СЃ",
 };
 
 type BookingPlannerProps = {
@@ -64,9 +64,9 @@ type SelectedTicket = (typeof BOOKING_TICKETS)[number] & {
 };
 
 function getTicketWord(count: number) {
-  if (count % 10 === 1 && count % 100 !== 11) return "билет";
-  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return "билета";
-  return "билетов";
+  if (count % 10 === 1 && count % 100 !== 11) return "Р±РёР»РµС‚";
+  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) return "Р±РёР»РµС‚Р°";
+  return "Р±РёР»РµС‚РѕРІ";
 }
 
 function getStorageSnapshot() {
@@ -100,7 +100,7 @@ function SummaryRows({
       <div className="summary-group">
         <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
           <ShoppingBag size={15} />
-          Билеты
+          Р‘РёР»РµС‚С‹
         </span>
         <div className="mt-3 space-y-2">
           {selectedTickets.length ? (
@@ -113,7 +113,7 @@ function SummaryRows({
                   <div>
                     {ticket.mobileName} x{ticket.quantity}
                   </div>
-                  {ticket.hasHappyHourDiscount ? <div className="mt-1 text-[0.72rem] text-[#dbe8be]">цена счастливого часа</div> : null}
+                  {ticket.hasHappyHourDiscount ? <div className="mt-1 text-[0.72rem] text-[#dbe8be]">С†РµРЅР° СЃС‡Р°СЃС‚Р»РёРІРѕРіРѕ С‡Р°СЃР°</div> : null}
                   {ticket.switchMessage ? <div className="mt-1 text-[0.72rem] text-[#dbe8be]">{ticket.switchMessage}</div> : null}
                 </div>
                 <strong className="shrink-0 text-[0.84rem] text-[#f7efdc]">{formatCurrency(ticket.price * ticket.quantity)}</strong>
@@ -121,7 +121,7 @@ function SummaryRows({
             ))
           ) : (
             <div className="rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5 text-[0.84rem] text-[#efe4c8]/72">
-              Пока ничего не выбрано
+              РџРѕРєР° РЅРёС‡РµРіРѕ РЅРµ РІС‹Р±СЂР°РЅРѕ
             </div>
           )}
         </div>
@@ -130,19 +130,19 @@ function SummaryRows({
       <div className="summary-group">
         <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
           <CalendarDays size={15} />
-          Детали визита
+          Р”РµС‚Р°Р»Рё РІРёР·РёС‚Р°
         </span>
         <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-            <span className="text-[0.84rem] text-[#efe4c8]/72">Дата</span>
+            <span className="text-[0.84rem] text-[#efe4c8]/72">Р”Р°С‚Р°</span>
             <strong className="text-[0.84rem] text-[#f7efdc]">{selectedDateLabel}</strong>
           </div>
           <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-            <span className="text-[0.84rem] text-[#efe4c8]/72">Время</span>
+            <span className="text-[0.84rem] text-[#efe4c8]/72">Р’СЂРµРјСЏ</span>
             <strong className="text-[0.84rem] text-[#f7efdc]">{selectedTimeLabel}</strong>
           </div>
           <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-            <span className="text-[0.84rem] text-[#efe4c8]/72">Мест</span>
+            <span className="text-[0.84rem] text-[#efe4c8]/72">РњРµСЃС‚</span>
             <strong className="text-[0.84rem] text-[#f7efdc]">{totalTicketsCount}</strong>
           </div>
         </div>
@@ -151,25 +151,25 @@ function SummaryRows({
       <div className="rounded-[24px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] p-4">
         <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
           <CreditCard size={15} />
-          Оплата
+          РћРїР»Р°С‚Р°
         </span>
         <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
-            <span>Полная стоимость</span>
+            <span>РџРѕР»РЅР°СЏ СЃС‚РѕРёРјРѕСЃС‚СЊ</span>
             <strong className="text-[#f7efdc]">{formatCurrency(total)}</strong>
           </div>
           {happyHourDiscountAmount > 0 ? (
             <div className="flex items-center justify-between text-[0.88rem] text-[#dbe8be]">
-              <span>Скидка счастливого часа</span>
+              <span>РЎРєРёРґРєР° СЃС‡Р°СЃС‚Р»РёРІРѕРіРѕ С‡Р°СЃР°</span>
               <strong>-{formatCurrency(happyHourDiscountAmount)}</strong>
             </div>
           ) : null}
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
-            <span>Предоплата сейчас</span>
+            <span>РџСЂРµРґРѕРїР»Р°С‚Р° СЃРµР№С‡Р°СЃ</span>
             <strong className="text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
           </div>
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
-            <span>Остаток на месте</span>
+            <span>РћСЃС‚Р°С‚РѕРє РЅР° РјРµСЃС‚Рµ</span>
             <strong className="text-[#f7efdc]">{formatCurrency(remainingOnSite)}</strong>
           </div>
         </div>
@@ -283,9 +283,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       const effectiveTariffId: BookingTicketId = switchedToHappyHour || staysHappyHour ? "happy-hour" : switchedToStandard ? "standard" : ticket.id;
       const effectivePrice = effectiveTariffId === "happy-hour" && happyHourRate ? happyHourRate.price : effectiveTariffId === "standard" ? standardPrice : ticket.price;
       const switchMessage = switchedToHappyHour
-        ? "Для этого времени действует цена счастливого часа."
+        ? "Р”Р»СЏ СЌС‚РѕРіРѕ РІСЂРµРјРµРЅРё РґРµР№СЃС‚РІСѓРµС‚ С†РµРЅР° СЃС‡Р°СЃС‚Р»РёРІРѕРіРѕ С‡Р°СЃР°."
         : switchedToStandard
-          ? "Для этого времени действует обычная цена."
+          ? "Р”Р»СЏ СЌС‚РѕРіРѕ РІСЂРµРјРµРЅРё РґРµР№СЃС‚РІСѓРµС‚ РѕР±С‹С‡РЅР°СЏ С†РµРЅР°."
           : undefined;
 
       return {
@@ -316,11 +316,11 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       .reduce((sum, ticket) => sum + ticket.quantity, 0);
 
     if (switchedToHappyHourCount > 0) {
-      return `Вы выбрали счастливый слот, поэтому ${switchedToHappyHourCount} ${getTicketWord(switchedToHappyHourCount)} ${switchedToHappyHourCount === 1 ? "перешел" : "перешли"} на цену счастливого часа.`;
+      return `Р’С‹ РІС‹Р±СЂР°Р»Рё СЃС‡Р°СЃС‚Р»РёРІС‹Р№ СЃР»РѕС‚, РїРѕСЌС‚РѕРјСѓ ${switchedToHappyHourCount} ${getTicketWord(switchedToHappyHourCount)} ${switchedToHappyHourCount === 1 ? "РїРµСЂРµС€РµР»" : "РїРµСЂРµС€Р»Рё"} РЅР° С†РµРЅСѓ СЃС‡Р°СЃС‚Р»РёРІРѕРіРѕ С‡Р°СЃР°.`;
     }
 
     if (switchedToStandardCount > 0) {
-      return `Для выбранного времени счастливый час не действует, поэтому ${switchedToStandardCount} ${getTicketWord(switchedToStandardCount)} ${switchedToStandardCount === 1 ? "перешел" : "перешли"} на обычную цену.`;
+      return `Р”Р»СЏ РІС‹Р±СЂР°РЅРЅРѕРіРѕ РІСЂРµРјРµРЅРё СЃС‡Р°СЃС‚Р»РёРІС‹Р№ С‡Р°СЃ РЅРµ РґРµР№СЃС‚РІСѓРµС‚, РїРѕСЌС‚РѕРјСѓ ${switchedToStandardCount} ${getTicketWord(switchedToStandardCount)} ${switchedToStandardCount === 1 ? "РїРµСЂРµС€РµР»" : "РїРµСЂРµС€Р»Рё"} РЅР° РѕР±С‹С‡РЅСѓСЋ С†РµРЅСѓ.`;
     }
 
     return "";
@@ -357,10 +357,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const total = ticketsTotal;
   const prepaymentNow = totalTicketsCount * BOOKING_PREPAYMENT_PER_GUEST;
   const remainingOnSite = Math.max(total - prepaymentNow, 0);
-  const selectedDateLabel = selectedDate ? selectedDate.label : "Выберите дату";
-  const selectedTimeLabel = selectedTime || "Выберите время";
+  const selectedDateLabel = selectedDate ? selectedDate.label : "Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ";
+  const selectedTimeLabel = selectedTime || "Р’С‹Р±РµСЂРёС‚Рµ РІСЂРµРјСЏ";
   const mobileSelectionNote =
-    totalTicketsCount > 0 ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} · предоплата ${formatCurrency(prepaymentNow)}` : "Соберите визит по шагам";
+    totalTicketsCount > 0 ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} В· РїСЂРµРґРѕРїР»Р°С‚Р° ${formatCurrency(prepaymentNow)}` : "РЎРѕР±РµСЂРёС‚Рµ РІРёР·РёС‚ РїРѕ С€Р°РіР°Рј";
 
   function resetStatuses() {
     setStepError("");
@@ -404,12 +404,12 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   function validateContacts() {
     const nextErrors: Partial<Record<keyof ContactValues, string>> = {};
     const nextConsentErrors: Partial<Record<keyof ConsentValues, string>> = {};
-    if (contactValues.name.trim().length < 2) nextErrors.name = "Укажите имя";
-    if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) nextErrors.phone = "Укажите телефон корректно";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactValues.email.trim())) nextErrors.email = "Укажите email корректно";
-    if (contactValues.comment.trim().length > 280) nextErrors.comment = "Комментарий должен быть короче 280 символов";
-    if (!consentValues.terms) nextConsentErrors.terms = "Подтвердите условия использования, политику конфиденциальности и публичную оферту";
-    if (!consentValues.personalData) nextConsentErrors.personalData = "Подтвердите согласие на обработку персональных данных";
+    if (contactValues.name.trim().length < 2) nextErrors.name = "РЈРєР°Р¶РёС‚Рµ РёРјСЏ";
+    if (!/^\+?[0-9()\-\s]{10,18}$/.test(contactValues.phone.trim())) nextErrors.phone = "РЈРєР°Р¶РёС‚Рµ С‚РµР»РµС„РѕРЅ РєРѕСЂСЂРµРєС‚РЅРѕ";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactValues.email.trim())) nextErrors.email = "РЈРєР°Р¶РёС‚Рµ email РєРѕСЂСЂРµРєС‚РЅРѕ";
+    if (contactValues.comment.trim().length > 280) nextErrors.comment = "РљРѕРјРјРµРЅС‚Р°СЂРёР№ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєРѕСЂРѕС‡Рµ 280 СЃРёРјРІРѕР»РѕРІ";
+    if (!consentValues.terms) nextConsentErrors.terms = "РџРѕРґС‚РІРµСЂРґРёС‚Рµ СѓСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ, РїРѕР»РёС‚РёРєСѓ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё Рё РїСѓР±Р»РёС‡РЅСѓСЋ РѕС„РµСЂС‚Сѓ";
+    if (!consentValues.personalData) nextConsentErrors.personalData = "РџРѕРґС‚РІРµСЂРґРёС‚Рµ СЃРѕРіР»Р°СЃРёРµ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РїРµСЂСЃРѕРЅР°Р»СЊРЅС‹С… РґР°РЅРЅС‹С…";
     setFieldErrors(nextErrors);
     setConsentErrors(nextConsentErrors);
     return Object.keys(nextErrors).length === 0 && Object.keys(nextConsentErrors).length === 0;
@@ -424,31 +424,31 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
     if (!selectedTickets.length) {
       setStep(0);
-      setStepError("Добавьте хотя бы один билет перед отправкой.");
+      setStepError("Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ Р±РёР»РµС‚ РїРµСЂРµРґ РѕС‚РїСЂР°РІРєРѕР№.");
       return;
     }
 
     if (!selectedDate) {
       setStep(1);
-      setStepError("Выберите дату визита.");
+      setStepError("Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РІРёР·РёС‚Р°.");
       return;
     }
 
     if (!selectedTime || timeSlots.find((slot) => slot.time === selectedTime)?.disabled) {
       setStep(2);
-      setStepError("Выберите доступное время.");
+      setStepError("Р’С‹Р±РµСЂРёС‚Рµ РґРѕСЃС‚СѓРїРЅРѕРµ РІСЂРµРјСЏ.");
       return;
     }
 
     if (familyCount > 0 && familyCount < 3) {
       setStep(0);
-      setStepError('Для тарифа "Семейный" нужно выбрать минимум 3 билета.');
+      setStepError('Р”Р»СЏ С‚Р°СЂРёС„Р° "РЎРµРјРµР№РЅС‹Р№" РЅСѓР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ РјРёРЅРёРјСѓРј 3 Р±РёР»РµС‚Р°.');
       return;
     }
 
     if (!validateContacts()) {
       setStep(3);
-      setStepError("Проверьте телефон перед отправкой заявки.");
+      setStepError("РџСЂРѕРІРµСЂСЊС‚Рµ С‚РµР»РµС„РѕРЅ РїРµСЂРµРґ РѕС‚РїСЂР°РІРєРѕР№ Р·Р°СЏРІРєРё.");
       return;
     }
 
@@ -488,7 +488,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
         clientName: contactValues.name,
         clientEmail: contactValues.email,
         clientPhone: contactValues.phone,
-        serviceName: `В Ёлках: бронь ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")}`,
+        serviceName: `Р’ РЃР»РєР°С…: Р±СЂРѕРЅСЊ ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")}`,
         successPath: `/booking/success?${params.toString()}`,
       });
 
@@ -496,7 +496,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       window.location.assign(invoice.paymentUrl);
     } catch (error) {
       setStep(2);
-      setStepError(error instanceof Error ? error.message : "Не удалось сохранить запись.");
+      setStepError(error instanceof Error ? error.message : "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ Р·Р°РїРёСЃСЊ.");
     } finally {
       setIsSubmitting(false);
     }
@@ -504,6 +504,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
   const ofertaHref = `/oferta?returnTo=${encodeURIComponent("/booking")}`;
   const privacyHref = `/privacy?returnTo=${encodeURIComponent("/booking")}`;
+  const siteTermsHref = `${ofertaHref}#section-1`;
+  const publicOfferHref = `${ofertaHref}#section-3`;
 
   function goToStep(nextStep: number) {
     resetStatuses();
@@ -515,27 +517,27 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
     if (step === 0) {
       if (!selectedTickets.length) {
-        setStepError("Добавьте хотя бы один билет.");
+        setStepError("Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ Р±РёР»РµС‚.");
         return;
       }
       if (familyCount > 0 && familyCount < 3) {
-        setStepError('Для тарифа "Семейный" нужно выбрать минимум 3 билета.');
+        setStepError('Р”Р»СЏ С‚Р°СЂРёС„Р° "РЎРµРјРµР№РЅС‹Р№" РЅСѓР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ РјРёРЅРёРјСѓРј 3 Р±РёР»РµС‚Р°.');
         return;
       }
     }
 
     if (step === 1 && !selectedDate) {
-      setStepError("Выберите дату визита.");
+      setStepError("Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РІРёР·РёС‚Р°.");
       return;
     }
 
     if (step === 2 && (!selectedTime || timeSlots.find((slot) => slot.time === selectedTime)?.disabled)) {
-      setStepError("Выберите доступное время.");
+      setStepError("Р’С‹Р±РµСЂРёС‚Рµ РґРѕСЃС‚СѓРїРЅРѕРµ РІСЂРµРјСЏ.");
       return;
     }
 
     if (step === 3 && !validateContacts()) {
-      setStepError("Проверьте контактные данные перед продолжением.");
+      setStepError("РџСЂРѕРІРµСЂСЊС‚Рµ РєРѕРЅС‚Р°РєС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ РїРµСЂРµРґ РїСЂРѕРґРѕР»Р¶РµРЅРёРµРј.");
       return;
     }
 
@@ -557,7 +559,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
               <div className="forest-card p-4 lg:hidden">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Бронирование</div>
+                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Р‘СЂРѕРЅРёСЂРѕРІР°РЅРёРµ</div>
                     <div className="mt-1 text-[1.08rem] font-black text-[#f6efdb]">{bookingSteps[step]}</div>
                     <p className="mt-1 text-[0.82rem] leading-[1.42] text-[#efe4c8]/82">{bookingStepNotes[step]}</p>
                   </div>
@@ -568,19 +570,19 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
                 <div className="mt-4 grid grid-cols-2 gap-2.5">
                   <div className="rounded-[18px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] px-3 py-3">
-                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Билеты</div>
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Р‘РёР»РµС‚С‹</div>
                     <div className="mt-1 text-[0.95rem] font-bold text-[#f6efdb]">{totalTicketsCount || 0}</div>
                   </div>
                   <div className="rounded-[18px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] px-3 py-3">
-                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Дата</div>
-                    <div className="mt-1 text-[0.9rem] font-bold leading-[1.2] text-[#f6efdb]">{selectedDate?.dayLabel ?? "Выберите"}</div>
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Р”Р°С‚Р°</div>
+                    <div className="mt-1 text-[0.9rem] font-bold leading-[1.2] text-[#f6efdb]">{selectedDate?.dayLabel ?? "Р’С‹Р±РµСЂРёС‚Рµ"}</div>
                   </div>
                   <div className="rounded-[18px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] px-3 py-3">
-                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Время</div>
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Р’СЂРµРјСЏ</div>
                     <div className="mt-1 text-[0.9rem] font-bold text-[#f6efdb]">{selectedTimeLabel}</div>
                   </div>
                   <div className="rounded-[18px] border border-[#a7c873]/45 bg-[linear-gradient(180deg,rgba(122,166,74,.22)_0%,rgba(78,113,45,.18)_100%)] px-3 py-3">
-                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#dbe8be]">Сейчас</div>
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#dbe8be]">РЎРµР№С‡Р°СЃ</div>
                     <div className="mt-1 text-[0.95rem] font-black text-[#f6efdb]">{formatCurrency(prepaymentNow)}</div>
                   </div>
                 </div>
@@ -611,7 +613,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
               <div className="forest-card mt-4 overflow-hidden p-4 sm:p-5 lg:p-6">
                   <div className="border-b border-[#d6c388]/16 pb-4">
-                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг {step + 1}</div>
+                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РЁР°Рі {step + 1}</div>
                     <h3 className="mt-2 text-[1.28rem] font-black text-[#f6efdb] sm:text-[1.75rem]">{bookingSteps[step]}</h3>
                     <p className="mt-2 max-w-2xl text-[0.84rem] leading-[1.45] text-[#efe4c8]/82 sm:text-[0.95rem]">{bookingStepNotes[step]}</p>
                   </div>
@@ -652,7 +654,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                                   infoOpen ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.1)] text-[#f6efdb]" : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#efe4c8]/82"
                                 )}
                                 onClick={() => setActiveInfoRateId(infoOpen ? null : ticket.id)}
-                                aria-label={`Подробнее о тарифе ${ticket.name}`}
+                                aria-label={`РџРѕРґСЂРѕР±РЅРµРµ Рѕ С‚Р°СЂРёС„Рµ ${ticket.name}`}
                               >
                                 <Info size={16} />
                               </button>
@@ -696,11 +698,11 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                                   }
                                   onClick={() => updateTicketQuantity(ticket.id, 1)}
                                 >
-                                  Выбрать билет
+                                  Р’С‹Р±СЂР°С‚СЊ Р±РёР»РµС‚
                                 </button>
                               ) : (
                                 <div className="rounded-[18px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.06)] p-2.5 sm:rounded-[20px] sm:p-3">
-                                  <div className="text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-[#e8d9b4] sm:text-[0.72rem]">Выбрано</div>
+                                  <div className="text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-[#e8d9b4] sm:text-[0.72rem]">Р’С‹Р±СЂР°РЅРѕ</div>
                                   <div className="mt-2 flex items-center justify-between gap-2">
                                     <button
                                       type="button"
@@ -744,7 +746,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             <div className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-[#e8d9b4] sm:text-[0.7rem]">{date.weekdayLabel}</div>
                             <div className="mt-2 text-[0.92rem] font-black leading-[1.1] text-[#f7efdc] sm:text-[1.02rem]">{date.dayLabel}</div>
                             <p className="mt-1.5 text-[0.62rem] leading-[1.2] text-[#efe4c8]/74 sm:text-[0.7rem]">{date.compactLabel.replace("\n", " ")}</p>
-                            <div className="mt-2 text-[0.58rem] font-semibold leading-[1.2] text-[#dbe8be]">Свободно</div>
+                            <div className="mt-2 text-[0.58rem] font-semibold leading-[1.2] text-[#dbe8be]">РЎРІРѕР±РѕРґРЅРѕ</div>
                           </button>
                         );
                       })}
@@ -773,11 +775,11 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               <strong className="text-[0.96rem]">{slot.time}</strong>
                             </div>
                             <div className="mt-2 text-[0.76rem] leading-[1.35] text-[#efe4c8]/78">
-                              {slot.disabled ? "Недостаточно мест" : `Свободно ${slot.remainingGuests}`}
+                              {slot.disabled ? "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РјРµСЃС‚" : `РЎРІРѕР±РѕРґРЅРѕ ${slot.remainingGuests}`}
                             </div>
                             {slot.isHappyHour ? (
                               <div className="mt-2 inline-flex rounded-full border border-[#a7c873]/35 bg-[rgba(122,166,74,.16)] px-2 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.06em] text-[#dbe8be]">
-                                Счастливый час
+                                РЎС‡Р°СЃС‚Р»РёРІС‹Р№ С‡Р°СЃ
                               </div>
                             ) : null}
                           </button>
@@ -791,8 +793,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       ) : null}
 
                       <div className="mt-4 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.83rem] leading-[1.45] text-[#efe4c8]/82">
-                        Все визиты проходят по фиксированным слотам: 11:00, 13:00, 15:00, 17:00 и 19:00. Длительность каждого визита 1 час.
-                        Метка счастливого часа появляется только на тех слотах, которые сейчас включены в админке на выбранную дату.
+                        Р’СЃРµ РІРёР·РёС‚С‹ РїСЂРѕС…РѕРґСЏС‚ РїРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹Рј СЃР»РѕС‚Р°Рј: 11:00, 13:00, 15:00, 17:00 Рё 19:00. Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РєР°Р¶РґРѕРіРѕ РІРёР·РёС‚Р° 1 С‡Р°СЃ.
+                        РњРµС‚РєР° СЃС‡Р°СЃС‚Р»РёРІРѕРіРѕ С‡Р°СЃР° РїРѕСЏРІР»СЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РЅР° С‚РµС… СЃР»РѕС‚Р°С…, РєРѕС‚РѕСЂС‹Рµ СЃРµР№С‡Р°СЃ РІРєР»СЋС‡РµРЅС‹ РІ Р°РґРјРёРЅРєРµ РЅР° РІС‹Р±СЂР°РЅРЅСѓСЋ РґР°С‚Сѓ.
                       </div>
                     </div>
                   ) : null}
@@ -801,10 +803,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                     <div className="mt-5">
                       <div className="grid gap-3 sm:grid-cols-2">
                         <label className="block">
-                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Имя</span>
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РРјСЏ</span>
                           <input
                             className="field-paper rounded-2xl px-4 py-3"
-                            placeholder="Как к вам обращаться"
+                            placeholder="РљР°Рє Рє РІР°Рј РѕР±СЂР°С‰Р°С‚СЊСЃСЏ"
                             value={contactValues.name}
                             onChange={(event) => updateContactField("name", event.target.value)}
                           />
@@ -812,7 +814,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         </label>
 
                         <label className="block">
-                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон</span>
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РўРµР»РµС„РѕРЅ</span>
                           <input
                             className="field-paper rounded-2xl px-4 py-3"
                             placeholder="+7 (___) ___-__-__"
@@ -834,10 +836,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         </label>
 
                         <label className="block sm:col-span-2">
-                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Комментарий</span>
+                          <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РљРѕРјРјРµРЅС‚Р°СЂРёР№</span>
                           <textarea
                             className="field-paper min-h-[108px] rounded-2xl px-4 py-3"
-                            placeholder="Пожелания к визиту"
+                            placeholder="РџРѕР¶РµР»Р°РЅРёСЏ Рє РІРёР·РёС‚Сѓ"
                             value={contactValues.comment}
                             onChange={(event) => updateContactField("comment", event.target.value)}
                           />
@@ -846,7 +848,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       </div>
 
                       <div className="mt-3 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.84rem] leading-[1.45] text-[#efe4c8]/84">
-                        Проверьте данные перед отправкой заявки: дата, время и выбранные билеты будут указаны в бронировании.
+                        РџСЂРѕРІРµСЂСЊС‚Рµ РґР°РЅРЅС‹Рµ РїРµСЂРµРґ РѕС‚РїСЂР°РІРєРѕР№ Р·Р°СЏРІРєРё: РґР°С‚Р°, РІСЂРµРјСЏ Рё РІС‹Р±СЂР°РЅРЅС‹Рµ Р±РёР»РµС‚С‹ Р±СѓРґСѓС‚ СѓРєР°Р·Р°РЅС‹ РІ Р±СЂРѕРЅРёСЂРѕРІР°РЅРёРё.
                       </div>
 
                       <div className="mt-4 space-y-3">
@@ -876,14 +878,32 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             </span>
                             <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
                               Я принимаю{" "}
-                                <Link
-                                  prefetch
-                                  className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
-                                  href={ofertaHref}
-                                  onClick={(event) => event.stopPropagation()}
-                                >
-                                  условия использования, политику конфиденциальности и публичную оферту
-                                </Link>
+                              <Link
+                                prefetch
+                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                href={siteTermsHref}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                условия использования
+                              </Link>
+                              {", "}
+                              <Link
+                                prefetch
+                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                href={privacyHref}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                политику конфиденциальности
+                              </Link>
+                              {" "}и{" "}
+                              <Link
+                                prefetch
+                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                href={publicOfferHref}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                публичную оферту
+                              </Link>
                               .
                             </span>
                           </label>
@@ -915,15 +935,33 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                               <Check size={14} />
                             </span>
                             <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
-                              Я даю согласие на{" "}
-                                <Link
-                                  prefetch
-                                  className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
-                                  href={privacyHref}
-                                  onClick={(event) => event.stopPropagation()}
-                                >
-                                  обработку моих персональных данных
-                                </Link>
+                              Я принимаю{" "}
+                              <Link
+                                prefetch
+                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                href={siteTermsHref}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                условия использования
+                              </Link>
+                              {", "}
+                              <Link
+                                prefetch
+                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                href={privacyHref}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                политику конфиденциальности
+                              </Link>
+                              {" "}и{" "}
+                              <Link
+                                prefetch
+                                className="font-bold text-[#f2d28c] underline underline-offset-4 hover:text-white"
+                                href={publicOfferHref}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                публичную оферту
+                              </Link>
                               .
                             </span>
                           </label>
@@ -940,34 +978,34 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       <div className="rounded-[24px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] p-4 sm:p-5">
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div>
-                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Билеты</span>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Р‘РёР»РµС‚С‹</span>
                             <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">
-                              {selectedTickets.length ? selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ") : "Не выбраны"}
+                              {selectedTickets.length ? selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ") : "РќРµ РІС‹Р±СЂР°РЅС‹"}
                             </strong>
                           </div>
                           <div>
-                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Дата</span>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Р”Р°С‚Р°</span>
                             <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedDateLabel}</strong>
                           </div>
                           <div>
-                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Время</span>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Р’СЂРµРјСЏ</span>
                             <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{selectedTimeLabel}</strong>
                           </div>
                           <div>
-                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Имя</span>
-                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.name || "Не указано"}</strong>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">РРјСЏ</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.name || "РќРµ СѓРєР°Р·Р°РЅРѕ"}</strong>
                           </div>
                           <div>
-                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Телефон</span>
-                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.phone || "Не указан"}</strong>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">РўРµР»РµС„РѕРЅ</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.phone || "РќРµ СѓРєР°Р·Р°РЅ"}</strong>
                           </div>
                           <div>
                             <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Email</span>
-                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.email || "Не указан"}</strong>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">{contactValues.email || "РќРµ СѓРєР°Р·Р°РЅ"}</strong>
                           </div>
                           <div>
-                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Длительность</span>
-                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">1 час</strong>
+                            <span className="text-[0.7rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ</span>
+                            <strong className="mt-1 block text-[0.92rem] leading-[1.45] text-[#f6efdb]">1 С‡Р°СЃ</strong>
                           </div>
                         </div>
                       </div>
@@ -978,15 +1016,15 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             <CreditCard size={18} />
                           </div>
                           <div>
-                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#dbe8be]">Оплата</div>
-                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">Предоплата 500 ₽ за каждое место</h4>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#dbe8be]">РћРїР»Р°С‚Р°</div>
+                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">РџСЂРµРґРѕРїР»Р°С‚Р° 500 в‚Ѕ Р·Р° РєР°Р¶РґРѕРµ РјРµСЃС‚Рѕ</h4>
                             <p className="mt-2 text-[0.88rem] leading-[1.5] text-[#edf6df]">
-                              На сайте оплачивается только предварительная оплата: {formatCurrency(BOOKING_PREPAYMENT_PER_GUEST)} за каждое место.
-                              Сейчас вы вносите {formatCurrency(prepaymentNow)}, остаток {formatCurrency(remainingOnSite)} оплачивается на месте.
+                              РќР° СЃР°Р№С‚Рµ РѕРїР»Р°С‡РёРІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅР°СЏ РѕРїР»Р°С‚Р°: {formatCurrency(BOOKING_PREPAYMENT_PER_GUEST)} Р·Р° РєР°Р¶РґРѕРµ РјРµСЃС‚Рѕ.
+                              РЎРµР№С‡Р°СЃ РІС‹ РІРЅРѕСЃРёС‚Рµ {formatCurrency(prepaymentNow)}, РѕСЃС‚Р°С‚РѕРє {formatCurrency(remainingOnSite)} РѕРїР»Р°С‡РёРІР°РµС‚СЃСЏ РЅР° РјРµСЃС‚Рµ.
                             </p>
                             {happyHourDiscountAmount > 0 ? (
                               <p className="mt-2 text-[0.82rem] font-semibold leading-[1.45] text-[#dbe8be]">
-                                Скидка счастливого часа уже учтена: -{formatCurrency(happyHourDiscountAmount)}.
+                                РЎРєРёРґРєР° СЃС‡Р°СЃС‚Р»РёРІРѕРіРѕ С‡Р°СЃР° СѓР¶Рµ СѓС‡С‚РµРЅР°: -{formatCurrency(happyHourDiscountAmount)}.
                               </p>
                             ) : null}
                           </div>
@@ -1004,20 +1042,20 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
                   <div className="mt-5 hidden items-center justify-between gap-3 border-t border-[#d6c388]/16 pt-4 lg:flex">
                     <div className="rounded-[20px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-4 py-3">
-                      <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас в заказе</div>
+                      <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">РЎРµР№С‡Р°СЃ РІ Р·Р°РєР°Р·Рµ</div>
                       <div className="mt-1 text-[0.86rem] font-bold text-[#f6efdb]">{mobileSelectionNote}</div>
                     </div>
                     <div className="flex gap-2">
                       <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
-                        Назад
+                        РќР°Р·Р°Рґ
                       </button>
                       {step < bookingSteps.length - 1 ? (
                         <button type="button" className="btn-forest min-h-[44px] px-4" onClick={() => goToStep(step + 1)}>
-                          Продолжить
+                          РџСЂРѕРґРѕР»Р¶РёС‚СЊ
                         </button>
                       ) : (
                         <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking} disabled={isSubmitting}>
-                          Оплатить
+                          РћРїР»Р°С‚РёС‚СЊ
                         </button>
                       )}
                     </div>
@@ -1028,7 +1066,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 <div className="mx-auto max-w-[780px] rounded-[26px] border border-[#d6c388]/28 bg-[rgba(12,25,15,.96)] p-3 shadow-[0_18px_40px_rgba(0,0,0,.35)] backdrop-blur-xl">
                   <div className="mb-3 flex items-center justify-between gap-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
                     <div>
-                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас</div>
+                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">РЎРµР№С‡Р°СЃ</div>
                       <div className="mt-1 text-[0.82rem] leading-[1.3] text-[#f6efdb]">{mobileSelectionNote}</div>
                     </div>
                     <strong className="shrink-0 text-[1rem] text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
@@ -1036,15 +1074,15 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
                   <div className="grid grid-cols-2 gap-2">
                     <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
-                      Назад
+                      РќР°Р·Р°Рґ
                     </button>
                     {step < bookingSteps.length - 1 ? (
                       <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={() => goToStep(step + 1)}>
-                        Продолжить
+                        РџСЂРѕРґРѕР»Р¶РёС‚СЊ
                       </button>
                     ) : (
                       <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking} disabled={isSubmitting}>
-                        Оплатить
+                        РћРїР»Р°С‚РёС‚СЊ
                       </button>
                     )}
                   </div>
@@ -1055,17 +1093,17 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
             <aside className="hidden lg:block lg:sticky lg:top-24">
               <div className="forest-card p-5">
                 <div className="border-b border-[#d6c388]/16 pb-4">
-                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Ваш визит</div>
-                  <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Сводка заказа</h3>
+                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Р’Р°С€ РІРёР·РёС‚</div>
+                  <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">РЎРІРѕРґРєР° Р·Р°РєР°Р·Р°</h3>
                   <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">
-                    Предоплата на сайте составляет 500 ₽ за каждое место. Остаток оплачивается уже в антикафе.
+                    РџСЂРµРґРѕРїР»Р°С‚Р° РЅР° СЃР°Р№С‚Рµ СЃРѕСЃС‚Р°РІР»СЏРµС‚ 500 в‚Ѕ Р·Р° РєР°Р¶РґРѕРµ РјРµСЃС‚Рѕ. РћСЃС‚Р°С‚РѕРє РѕРїР»Р°С‡РёРІР°РµС‚СЃСЏ СѓР¶Рµ РІ Р°РЅС‚РёРєР°С„Рµ.
                   </p>
                 </div>
 
                 <div className="mt-5 space-y-5">
                   <SummaryRows
                     selectedTickets={selectedTickets}
-                    selectedDateLabel={selectedDate?.dayLabel ?? "Выберите"}
+                    selectedDateLabel={selectedDate?.dayLabel ?? "Р’С‹Р±РµСЂРёС‚Рµ"}
                     selectedTimeLabel={selectedTimeLabel}
                     totalTicketsCount={totalTicketsCount}
                     total={total}
@@ -1076,13 +1114,13 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 </div>
 
                 <div className="mt-5 rounded-[22px] border border-[#8fad5e]/34 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.18)_100%)] px-4 py-4 text-[0.84rem] leading-[1.45] text-[#edf6df]">
-                  Визит проходит по фиксированным слотам и длится 1 час. Пожалуйста, проверьте дату, время и состав билетов перед оплатой.
+                  Р’РёР·РёС‚ РїСЂРѕС…РѕРґРёС‚ РїРѕ С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹Рј СЃР»РѕС‚Р°Рј Рё РґР»РёС‚СЃСЏ 1 С‡Р°СЃ. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РїСЂРѕРІРµСЂСЊС‚Рµ РґР°С‚Сѓ, РІСЂРµРјСЏ Рё СЃРѕСЃС‚Р°РІ Р±РёР»РµС‚РѕРІ РїРµСЂРµРґ РѕРїР»Р°С‚РѕР№.
                 </div>
 
                 <div className="mt-4 grid gap-2">
                   <a className="btn-cream min-h-[44px] w-full" href={BOOKING_CONTACTS.phoneHref}>
                     <Phone size={16} />
-                    <span className="ml-2">Позвонить</span>
+                    <span className="ml-2">РџРѕР·РІРѕРЅРёС‚СЊ</span>
                   </a>
                 </div>
               </div>
@@ -1093,3 +1131,4 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     </section>
   );
 }
+

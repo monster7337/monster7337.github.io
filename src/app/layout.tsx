@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import AmbientEffects from "@/components/AmbientEffects";
+import BookingRulesGate from "@/components/BookingRulesGate";
 
 export const metadata: Metadata = {
   title: 'Антикафе "В Ёлках" — минипиги и белки',
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body>
         <AmbientEffects />
+        <BookingRulesGate />
         {children}
       </body>
     </html>

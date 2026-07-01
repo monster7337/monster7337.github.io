@@ -33,8 +33,8 @@ export default function LegalPage({ eyebrow, title, intro, sections, returnHref 
             <p className="mt-4 text-[0.95rem] leading-[1.7] text-[#efe4c8]/82 sm:text-[1rem]">{intro}</p>
 
             <div className="mt-6 space-y-4">
-              {sections.map((section) => (
-                <section key={section.title} className="rounded-[24px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4 sm:p-5">
+              {sections.map((section, index) => (
+                <section id={`section-${index + 1}`} key={section.title} className="rounded-[24px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4 sm:p-5">
                   <h2 className="text-[1rem] font-black text-[#f6efdb] sm:text-[1.1rem]">{section.title}</h2>
                   <div className="mt-3 space-y-2 text-[0.92rem] leading-[1.65] text-[#efe4c8]/84">
                     {section.content.map((paragraph) => (

@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Leaf, PawPrint, ShieldCheck, Sparkles, X } from "lucide-react";
 
 const OPEN_EVENT = "v-elkah:booking-gate-open";
-const ACCEPTED_STORAGE_KEY = "v-elkah:rules-accepted";
 
 const rules = [
   "Помните: вы в гостях у животных, а не на аттракционе. Капибар нельзя принуждать к общению — слушайте иструкторов, чтобы всем было комфортно.",
@@ -27,34 +26,12 @@ function isGatedPath(pathname: string) {
   return pathname === "/booking" || pathname === "/gift-certificates";
 }
 
-function getStoredAcceptance() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return window.sessionStorage.getItem(ACCEPTED_STORAGE_KEY) === "true";
-}
-
-function storeAcceptance(value: boolean) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (value) {
-    window.sessionStorage.setItem(ACCEPTED_STORAGE_KEY, "true");
-    return;
-  }
-
-  window.sessionStorage.removeItem(ACCEPTED_STORAGE_KEY);
-}
-
 export default function BookingRulesGate() {
   const router = useRouter();
   const pathname = usePathname();
   const [pendingHref, setPendingHref] = useState("/booking");
   const [isOpen, setIsOpen] = useState(false);
   const [acceptedRules, setAcceptedRules] = useState(() => rules.map(() => false));
-  const [hasAcceptedRules, setHasAcceptedRules] = useState(() => getStoredAcceptance());
 
   useEffect(() => {
     const html = document.documentElement;
@@ -126,10 +103,6 @@ export default function BookingRulesGate() {
         return;
       }
 
-      if (getStoredAcceptance()) {
-        return;
-      }
-
       event.preventDefault();
       setPendingHref(`${url.pathname}${url.search}${url.hash}`);
       setAcceptedRules(rules.map(() => false));
@@ -146,7 +119,7 @@ export default function BookingRulesGate() {
   }, [pathname]);
 
   useEffect(() => {
-    if (!pathname || hasAcceptedRules || !isGatedPath(pathname) || isOpen) {
+    if (!pathname || !isGatedPath(pathname) || isOpen) {
       return;
     }
 
@@ -159,7 +132,7 @@ export default function BookingRulesGate() {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [hasAcceptedRules, isOpen, pathname]);
+  }, [isOpen, pathname]);
 
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
@@ -186,7 +159,7 @@ export default function BookingRulesGate() {
             className="absolute inset-0 border-0 bg-[radial-gradient(circle_at_top,rgba(236,214,156,.14),transparent_34%),rgba(4,12,7,.72)] backdrop-blur-md"
             aria-label="Закрыть окно с правилами"
             onClick={() => {
-              if (pathname && isGatedPath(pathname) && !hasAcceptedRules) {
+              if (pathname && isGatedPath(pathname)) {
                 router.push("/");
                 return;
               }
@@ -215,7 +188,7 @@ export default function BookingRulesGate() {
             <button
               type="button"
               onClick={() => {
-                if (pathname && isGatedPath(pathname) && !hasAcceptedRules) {
+                if (pathname && isGatedPath(pathname)) {
                   router.push("/");
                   return;
                 }
@@ -284,7 +257,7 @@ export default function BookingRulesGate() {
               <button
                 type="button"
                 onClick={() => {
-                  if (pathname && isGatedPath(pathname) && !hasAcceptedRules) {
+                  if (pathname && isGatedPath(pathname)) {
                     router.push("/");
                     return;
                   }
@@ -302,8 +275,6 @@ export default function BookingRulesGate() {
                   if (!allAccepted) {
                     return;
                   }
-                  storeAcceptance(true);
-                  setHasAcceptedRules(true);
                   setAcceptedRules(rules.map(() => false));
                   setIsOpen(false);
                   router.push(pendingHref);

@@ -16,6 +16,14 @@ const rules = [
   "Не опаздывайте — время сеанса сокращается, а продлить его нельзя.",
 ];
 
+function normalizePathname(pathname: string) {
+  if (!pathname || pathname === "/") {
+    return "/";
+  }
+
+  return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+}
+
 export function requestBookingGate(href = "/booking") {
   if (typeof window === "undefined") {
     return;
@@ -25,7 +33,8 @@ export function requestBookingGate(href = "/booking") {
 }
 
 function isGatedPath(pathname: string) {
-  return pathname === "/booking" || pathname === "/gift-certificates";
+  const normalizedPathname = normalizePathname(pathname);
+  return normalizedPathname === "/booking" || normalizedPathname === "/gift-certificates";
 }
 
 function hasDraftForPath(href: string) {
@@ -35,11 +44,13 @@ function hasDraftForPath(href: string) {
 
   const url = new URL(href, window.location.href);
 
-  if (url.pathname === "/booking") {
+  const targetPathname = normalizePathname(url.pathname);
+
+  if (targetPathname === "/booking") {
     return Boolean(window.sessionStorage.getItem(BOOKING_DRAFT_STORAGE_KEY));
   }
 
-  if (url.pathname === "/gift-certificates") {
+  if (targetPathname === "/gift-certificates") {
     return Boolean(window.sessionStorage.getItem(GIFT_DRAFT_STORAGE_KEY));
   }
 
@@ -127,7 +138,7 @@ export default function BookingRulesGate() {
       const url = new URL(anchor.href, window.location.href);
       const nextHref = `${url.pathname}${url.search}${url.hash}`;
 
-      if (pathname !== "/" || url.origin !== window.location.origin || !isGatedPath(url.pathname)) {
+      if (normalizePathname(pathname) !== "/" || url.origin !== window.location.origin || !isGatedPath(url.pathname)) {
         return;
       }
 

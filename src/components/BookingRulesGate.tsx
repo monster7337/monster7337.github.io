@@ -7,9 +7,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Leaf, PawPrint, ShieldCheck, Sparkles, X } from "lucide-react";
 
 const OPEN_EVENT = "v-elkah:booking-gate-open";
+const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
+const GIFT_DRAFT_STORAGE_KEY = "velkah-gift-draft";
 
 const rules = [
-  "Помните: вы в гостях у животных, а не на аттракционе. Капибар нельзя принуждать к общению — слушайте иструкторов, чтобы всем было комфортно.",
+  "Помните: вы в гостях у животных, а не на аттракционе. Животных нельзя принуждать к общению — слушайте инструкторов, чтобы всем было комфортно.",
   "Дети до 12 лет могут находиться с животными только со взрослым сопровождающим. Билет нужен каждому.",
   "Не опаздывайте — время сеанса сокращается, а продлить его нельзя.",
 ];
@@ -24,6 +26,24 @@ export function requestBookingGate(href = "/booking") {
 
 function isGatedPath(pathname: string) {
   return pathname === "/booking" || pathname === "/gift-certificates";
+}
+
+function hasDraftForPath(href: string) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const url = new URL(href, window.location.href);
+
+  if (url.pathname === "/booking") {
+    return Boolean(window.sessionStorage.getItem(BOOKING_DRAFT_STORAGE_KEY));
+  }
+
+  if (url.pathname === "/gift-certificates") {
+    return Boolean(window.sessionStorage.getItem(GIFT_DRAFT_STORAGE_KEY));
+  }
+
+  return false;
 }
 
 export default function BookingRulesGate() {
@@ -67,7 +87,14 @@ export default function BookingRulesGate() {
   useEffect(() => {
     const handleOpenRequest = (event: Event) => {
       const customEvent = event as CustomEvent<{ href?: string }>;
-      setPendingHref(customEvent.detail?.href || "/booking");
+      const href = customEvent.detail?.href || "/booking";
+
+      if (hasDraftForPath(href)) {
+        router.push(href);
+        return;
+      }
+
+      setPendingHref(href);
       setAcceptedRules(rules.map(() => false));
       setIsOpen(true);
     };
@@ -85,7 +112,7 @@ export default function BookingRulesGate() {
       }
 
       const target = event.target;
-      const anchor = target instanceof Element ? target.closest("a[href]") : null;
+      const anchor = target instanceof Element ? (target.closest("a[href]") as HTMLAnchorElement | null) : null;
 
       if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) {
         return;
@@ -98,19 +125,18 @@ export default function BookingRulesGate() {
       }
 
       const url = new URL(anchor.href, window.location.href);
+      const nextHref = `${url.pathname}${url.search}${url.hash}`;
 
-      const targetPathname = url.pathname;
-
-      if (url.origin !== window.location.origin || !isGatedPath(targetPathname)) {
+      if (pathname !== "/" || url.origin !== window.location.origin || !isGatedPath(url.pathname)) {
         return;
       }
 
-      if (pathname === targetPathname) {
+      if (hasDraftForPath(nextHref)) {
         return;
       }
 
       event.preventDefault();
-      setPendingHref(`${url.pathname}${url.search}${url.hash}`);
+      setPendingHref(nextHref);
       setAcceptedRules(rules.map(() => false));
       setIsOpen(true);
     };
@@ -122,7 +148,7 @@ export default function BookingRulesGate() {
       window.removeEventListener(OPEN_EVENT, handleOpenRequest);
       document.removeEventListener("click", handleDocumentClick, true);
     };
-  }, [pathname]);
+  }, [pathname, router]);
 
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
@@ -131,8 +157,24 @@ export default function BookingRulesGate() {
   }
 
   const allAccepted = acceptedRules.every(Boolean);
+
   const toggleRule = (index: number) => {
     setAcceptedRules((current) => current.map((value, currentIndex) => (currentIndex === index ? !value : value)));
+  };
+
+  const close = () => {
+    setAcceptedRules(rules.map(() => false));
+    setIsOpen(false);
+  };
+
+  const proceed = () => {
+    if (!allAccepted) {
+      return;
+    }
+
+    setAcceptedRules(rules.map(() => false));
+    setIsOpen(false);
+    router.push(pendingHref);
   };
 
   return createPortal(
@@ -148,10 +190,7 @@ export default function BookingRulesGate() {
             type="button"
             className="absolute inset-0 border-0 bg-[radial-gradient(circle_at_top,rgba(236,214,156,.14),transparent_34%),rgba(4,12,7,.72)] backdrop-blur-md"
             aria-label="Закрыть окно с правилами"
-            onClick={() => {
-              setAcceptedRules(rules.map(() => false));
-              setIsOpen(false);
-            }}
+            onClick={close}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -172,10 +211,7 @@ export default function BookingRulesGate() {
 
             <button
               type="button"
-              onClick={() => {
-                setAcceptedRules(rules.map(() => false));
-                setIsOpen(false);
-              }}
+              onClick={close}
               className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d6c388]/22 bg-[rgba(255,255,255,.05)] text-[#f6efdb] transition hover:-translate-y-px hover:bg-[rgba(255,255,255,.1)]"
               aria-label="Закрыть"
             >
@@ -189,12 +225,11 @@ export default function BookingRulesGate() {
               </div>
 
               <h2 id="elkah-booking-gate-title" className="mt-4 max-w-[560px] text-[1.9rem] font-black leading-[1.02] text-[#f6efdb] sm:text-[2.8rem]">
-                Несколько теплых правил, чтобы визит прошел спокойно и для гостей, и для животных
+                Несколько тёплых правил для спокойного визита
               </h2>
 
               <p className="mt-3 max-w-[560px] text-[0.95rem] leading-[1.65] text-[#efe4c8]/82">
-                У нас бережная атмосфера, и мы очень хотим ее сохранить. Перед переходом к бронированию посмотрите,
-                пожалуйста, короткие правила поведения.
+                У нас бережная атмосфера, и мы хотим её сохранить. Перед переходом к бронированию подтвердите, пожалуйста, три коротких правила поведения.
               </p>
             </div>
 
@@ -229,38 +264,24 @@ export default function BookingRulesGate() {
                 <ShieldCheck size={17} />
               </span>
               <span className="pt-1 text-[0.9rem] leading-[1.58]">
-                Нажимая кнопку ниже, вы подтверждаете, что готовы соблюдать правила поведения в антикафе.
+                Продолжая, вы подтверждаете, что готовы соблюдать правила поведения в пространстве.
               </span>
             </div>
 
             <div className="relative z-[1] mt-5 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => {
-                  setAcceptedRules(rules.map(() => false));
-                  setIsOpen(false);
-                }}
-                className="btn-cream min-h-[48px] flex-1 border-0 text-[0.95rem]"
-              >
+              <button type="button" onClick={close} className="btn-cream min-h-[48px] flex-1 border-0 text-[0.95rem]">
                 Вернуться
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (!allAccepted) {
-                    return;
-                  }
-                  setAcceptedRules(rules.map(() => false));
-                  setIsOpen(false);
-                  router.push(pendingHref);
-                }}
+                onClick={proceed}
                 disabled={!allAccepted}
                 className="btn-forest min-h-[48px] flex-1 text-[0.95rem] disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-75"
               >
                 <span className="inline-flex items-center gap-2">
                   <Heart size={16} />
                   <Leaf size={15} />
-                  Перейти к бронированию
+                  Перейти к оформлению
                 </span>
               </button>
             </div>

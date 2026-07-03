@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { Camera, Check, CircleAlert, Gift, Mail, MessageCircle, Minus, Plus, Send } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as adminData from "@/components/admin/admin-data";
 import { createPaykeeperInvoice } from "@/lib/paykeeperClient";
 
@@ -28,10 +28,10 @@ const { formatCurrency, giftDeliveryOptions, saveGiftCertificatePurchase } = adm
   };
 };
 
-const giftSteps = ["РљРѕР»РёС‡РµСЃС‚РІРѕ", "РљРѕРЅС‚Р°РєС‚С‹"] as const;
+const giftSteps = ["Количество", "Контакты"] as const;
 const giftStepNotes = [
-  "Р’С‹Р±РµСЂРёС‚Рµ, РЅР° СЃРєРѕР»СЊРєРѕ РіРѕСЃС‚РµР№ РѕС„РѕСЂРјРёС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚",
-  "Р—Р°РїРѕР»РЅРёС‚Рµ РґР°РЅРЅС‹Рµ РїРѕРєСѓРїР°С‚РµР»СЏ, РїРѕР»СѓС‡Р°С‚РµР»СЏ Рё СЃРїРѕСЃРѕР± РѕС‚РїСЂР°РІРєРё",
+  "Выберите, на сколько гостей оформить сертификат",
+  "Заполните данные покупателя, получателя и способ отправки",
 ] as const;
 
 type GiftFormValues = {
@@ -54,11 +54,11 @@ type ConsentValues = {
 };
 
 const deliveryMeta: Record<string, { description: string; tone: string }> = {
-  Email: { description: "РћС‚РїСЂР°РІРёРј СЃРµСЂС‚РёС„РёРєР°С‚ РЅР° РїРѕС‡С‚Сѓ РїРѕР»СѓС‡Р°С‚РµР»СЏ.", tone: "email" },
-  Telegram: { description: "РњРѕР¶РЅРѕ РѕС‚РїСЂР°РІРёС‚СЊ РїРѕ РЅРёРєСѓ РёР»Рё СЃСЃС‹Р»РєРµ РЅР° Р°РєРєР°СѓРЅС‚.", tone: "telegram" },
-  VK: { description: "РџРѕРґРѕР№РґРµС‚ СЃСЃС‹Р»РєР° РЅР° РїСЂРѕС„РёР»СЊ РёР»Рё СЃРѕРѕР±С‰РµСЃС‚РІРѕ.", tone: "vk" },
-  Instagram: { description: "РЈРєР°Р¶РёС‚Рµ Р°РєРєР°СѓРЅС‚ РёР»Рё СЃСЃС‹Р»РєСѓ РЅР° РїСЂРѕС„РёР»СЊ.", tone: "instagram" },
-  WhatsApp: { description: "РћС‚РїСЂР°РІРёРј РїРѕ РЅРѕРјРµСЂСѓ С‚РµР»РµС„РѕРЅР° РїРѕР»СѓС‡Р°С‚РµР»СЏ.", tone: "whatsapp" },
+  Email: { description: "Отправим сертификат на почту получателя.", tone: "email" },
+  Telegram: { description: "Можно отправить по нику или ссылке на аккаунт.", tone: "telegram" },
+  VK: { description: "Подойдет ссылка на профиль или сообщество.", tone: "vk" },
+  Instagram: { description: "Укажите аккаунт или ссылку на профиль.", tone: "instagram" },
+  WhatsApp: { description: "Отправим по номеру телефона получателя.", tone: "whatsapp" },
 };
 
 const socialDeliveryMethods = new Set(["Telegram", "VK", "Instagram"]);
@@ -67,9 +67,9 @@ function getGuestWord(value: number) {
   const mod10 = value % 10;
   const mod100 = value % 100;
 
-  if (mod10 === 1 && mod100 !== 11) return "С‡РµР»РѕРІРµРє";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "С‡РµР»РѕРІРµРєР°";
-  return "С‡РµР»РѕРІРµРє";
+  if (mod10 === 1 && mod100 !== 11) return "человек";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "человека";
+  return "человек";
 }
 
 function getGiftPricePerGuest(guestCount: number) {
@@ -77,7 +77,7 @@ function getGiftPricePerGuest(guestCount: number) {
 }
 
 function getGiftCertificateTitle(guestCount: number) {
-  return `РџРѕРґР°СЂРѕС‡РЅС‹Р№ СЃРµСЂС‚РёС„РёРєР°С‚ РЅР° РїРѕСЃРµС‰РµРЅРёРµ В· ${guestCount} ${getGuestWord(guestCount)}`;
+  return `Подарочный сертификат на посещение · ${guestCount} ${getGuestWord(guestCount)}`;
 }
 
 function DeliveryIcon({ method }: { method: string }) {
@@ -93,6 +93,7 @@ export default function GiftCertificateOrderForm() {
   const [guestCount, setGuestCount] = useState(1);
   const [stepError, setStepError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
   const [consentValues, setConsentValues] = useState<ConsentValues>({ terms: false, personalData: false });
   const [consentErrors, setConsentErrors] = useState<Partial<Record<keyof ConsentValues, string>>>({});
   const [values, setValues] = useState<GiftFormValues>({
@@ -114,22 +115,25 @@ export default function GiftCertificateOrderForm() {
   const total = useMemo(() => guestCount * pricePerGuest, [guestCount, pricePerGuest]);
   const certificateTitle = useMemo(() => getGiftCertificateTitle(guestCount), [guestCount]);
   const selectedDeliveryMeta = deliveryMeta[deliveryMethod] ?? deliveryMeta.Email;
-  const mobileSelectionNote = `${guestCount} ${getGuestWord(guestCount)} В· ${formatCurrency(pricePerGuest)} / С‡РµР».`;
+  const mobileSelectionNote = `${guestCount} ${getGuestWord(guestCount)} · ${formatCurrency(pricePerGuest)} / чел.`;
   const needsDeliveryContact = socialDeliveryMethods.has(deliveryMethod);
 
   const deliveryContactLabel =
     deliveryMethod === "Telegram"
-      ? "РќРёРє РёР»Рё СЃСЃС‹Р»РєР° РІ Telegram"
+      ? "Ник или ссылка в Telegram"
       : deliveryMethod === "VK"
-        ? "РЎСЃС‹Р»РєР° РЅР° РїСЂРѕС„РёР»СЊ VK"
-        : "РђРєРєР°СѓРЅС‚ РёР»Рё СЃСЃС‹Р»РєР° РІ Instagram";
+        ? "Ссылка на профиль VK"
+        : "Аккаунт или ссылка в Instagram";
 
   const deliveryContactPlaceholder =
-    deliveryMethod === "Telegram" ? "@nickname РёР»Рё t.me/..." : deliveryMethod === "VK" ? "vk.com/..." : "@instagram РёР»Рё instagram.com/...";
+    deliveryMethod === "Telegram" ? "@nickname или t.me/..." : deliveryMethod === "VK" ? "vk.com/..." : "@instagram или instagram.com/...";
 
   useEffect(() => {
     const raw = window.sessionStorage.getItem(GIFT_DRAFT_STORAGE_KEY);
-    if (!raw) return;
+    if (!raw) {
+      setIsDraftRestored(true);
+      return;
+    }
 
     try {
       const draft = JSON.parse(raw) as {
@@ -153,10 +157,12 @@ export default function GiftCertificateOrderForm() {
       }
     } catch {
       window.sessionStorage.removeItem(GIFT_DRAFT_STORAGE_KEY);
+    } finally {
+      setIsDraftRestored(true);
     }
   }, []);
 
-  useEffect(() => {
+  const saveDraft = useCallback(() => {
     window.sessionStorage.setItem(
       GIFT_DRAFT_STORAGE_KEY,
       JSON.stringify({
@@ -167,6 +173,43 @@ export default function GiftCertificateOrderForm() {
       })
     );
   }, [consentValues, guestCount, step, values]);
+
+  const handleLegalLinkIntent = useCallback(() => {
+    saveDraft();
+  }, [saveDraft]);
+
+  useEffect(() => {
+    if (!isDraftRestored) {
+      return;
+    }
+
+    saveDraft();
+  }, [isDraftRestored, saveDraft]);
+
+  useEffect(() => {
+    if (!isDraftRestored) {
+      return undefined;
+    }
+
+    const persistDraft = () => saveDraft();
+    const persistWhenHidden = () => {
+      if (document.visibilityState === "hidden") {
+        saveDraft();
+      }
+    };
+
+    window.addEventListener("pagehide", persistDraft);
+    window.addEventListener("beforeunload", persistDraft);
+    window.addEventListener("popstate", persistDraft);
+    document.addEventListener("visibilitychange", persistWhenHidden);
+
+    return () => {
+      window.removeEventListener("pagehide", persistDraft);
+      window.removeEventListener("beforeunload", persistDraft);
+      window.removeEventListener("popstate", persistDraft);
+      document.removeEventListener("visibilitychange", persistWhenHidden);
+    };
+  }, [isDraftRestored, saveDraft]);
 
   function updateGuestCount(nextValue: number) {
     setGuestCount(Math.max(GIFT_GUEST_MIN, Math.min(GIFT_GUEST_MAX, nextValue)));
@@ -203,19 +246,19 @@ export default function GiftCertificateOrderForm() {
     const phonePattern = /^\+?[0-9()\-\s]{10,18}$/;
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (values.purchaserName.trim().length < 2) nextErrors.purchaserName = "Р’РІРµРґРёС‚Рµ РёРјСЏ РїРѕРєСѓРїР°С‚РµР»СЏ";
-    if (!phonePattern.test(values.purchaserPhone.trim())) nextErrors.purchaserPhone = "РЈРєР°Р¶РёС‚Рµ С‚РµР»РµС„РѕРЅ РїРѕРєСѓРїР°С‚РµР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕ";
-    if (!emailPattern.test(values.purchaserEmail.trim())) nextErrors.purchaserEmail = "РЈРєР°Р¶РёС‚Рµ email РїРѕРєСѓРїР°С‚РµР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕ";
-    if (values.recipientName.trim().length < 2) nextErrors.recipientName = "Р’РІРµРґРёС‚Рµ РёРјСЏ РїРѕР»СѓС‡Р°С‚РµР»СЏ";
-    if (!phonePattern.test(values.recipientPhone.trim())) nextErrors.recipientPhone = "РЈРєР°Р¶РёС‚Рµ С‚РµР»РµС„РѕРЅ РїРѕР»СѓС‡Р°С‚РµР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕ";
-    if (!emailPattern.test(values.recipientEmail.trim())) nextErrors.recipientEmail = "РЈРєР°Р¶РёС‚Рµ email РїРѕР»СѓС‡Р°С‚РµР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕ";
-    if (!values.deliveryMethod.trim()) nextErrors.deliveryMethod = "Р’С‹Р±РµСЂРёС‚Рµ СЃРїРѕСЃРѕР± РѕС‚РїСЂР°РІРєРё";
-    if (needsDeliveryContact && !values.deliveryContact.trim()) nextErrors.deliveryContact = "РЈРєР°Р¶РёС‚Рµ РєРѕРЅС‚Р°РєС‚ РґР»СЏ РѕС‚РїСЂР°РІРєРё";
-    if (values.deliveryContact.trim().length > 120) nextErrors.deliveryContact = "РљРѕРЅС‚Р°РєС‚ РґР»СЏ РѕС‚РїСЂР°РІРєРё РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєРѕСЂРѕС‡Рµ 120 СЃРёРјРІРѕР»РѕРІ";
-    if (values.message.trim().length > 320) nextErrors.message = "РўРµРєСЃС‚ РїРѕР»СѓС‡Р°С‚РµР»СЋ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєРѕСЂРѕС‡Рµ 320 СЃРёРјРІРѕР»РѕРІ";
-    if (values.comment.trim().length > 320) nextErrors.comment = "РљРѕРјРјРµРЅС‚Р°СЂРёР№ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєРѕСЂРѕС‡Рµ 320 СЃРёРјРІРѕР»РѕРІ";
-    if (!consentValues.terms) nextConsentErrors.terms = "РџРѕРґС‚РІРµСЂРґРёС‚Рµ СѓСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ, РїРѕР»РёС‚РёРєСѓ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё Рё РїСѓР±Р»РёС‡РЅСѓСЋ РѕС„РµСЂС‚Сѓ";
-    if (!consentValues.personalData) nextConsentErrors.personalData = "РџРѕРґС‚РІРµСЂРґРёС‚Рµ СЃРѕРіР»Р°СЃРёРµ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РїРµСЂСЃРѕРЅР°Р»СЊРЅС‹С… РґР°РЅРЅС‹С…";
+    if (values.purchaserName.trim().length < 2) nextErrors.purchaserName = "Введите имя покупателя";
+    if (!phonePattern.test(values.purchaserPhone.trim())) nextErrors.purchaserPhone = "Укажите телефон покупателя корректно";
+    if (!emailPattern.test(values.purchaserEmail.trim())) nextErrors.purchaserEmail = "Укажите email покупателя корректно";
+    if (values.recipientName.trim().length < 2) nextErrors.recipientName = "Введите имя получателя";
+    if (!phonePattern.test(values.recipientPhone.trim())) nextErrors.recipientPhone = "Укажите телефон получателя корректно";
+    if (!emailPattern.test(values.recipientEmail.trim())) nextErrors.recipientEmail = "Укажите email получателя корректно";
+    if (!values.deliveryMethod.trim()) nextErrors.deliveryMethod = "Выберите способ отправки";
+    if (needsDeliveryContact && !values.deliveryContact.trim()) nextErrors.deliveryContact = "Укажите контакт для отправки";
+    if (values.deliveryContact.trim().length > 120) nextErrors.deliveryContact = "Контакт для отправки должен быть короче 120 символов";
+    if (values.message.trim().length > 320) nextErrors.message = "Текст получателю должен быть короче 320 символов";
+    if (values.comment.trim().length > 320) nextErrors.comment = "Комментарий должен быть короче 320 символов";
+    if (!consentValues.terms) nextConsentErrors.terms = "Подтвердите условия использования, политику конфиденциальности и публичную оферту";
+    if (!consentValues.personalData) nextConsentErrors.personalData = "Подтвердите согласие на обработку персональных данных";
 
     setErrors(nextErrors);
     setConsentErrors(nextConsentErrors);
@@ -227,7 +270,7 @@ export default function GiftCertificateOrderForm() {
 
     if (!validateForm()) {
       setStep(1);
-      setStepError("РџСЂРѕРІРµСЂСЊС‚Рµ РєРѕРЅС‚Р°РєС‚С‹ РїРѕР»СѓС‡Р°С‚РµР»СЏ, РїРѕРєСѓРїР°С‚РµР»СЏ Рё СЃРїРѕСЃРѕР± РѕС‚РїСЂР°РІРєРё РїРµСЂРµРґ РѕРїР»Р°С‚РѕР№.");
+      setStepError("Проверьте контакты получателя, покупателя и способ отправки перед оплатой.");
       return;
     }
 
@@ -261,14 +304,14 @@ export default function GiftCertificateOrderForm() {
         clientName: order.purchaserName,
         clientEmail: order.purchaserEmail,
         clientPhone: order.purchaserPhone,
-        serviceName: `Р’ РЃР»РєР°С…: ${order.certificateTitle}`,
+        serviceName: `В Ёлках: ${order.certificateTitle}`,
         successPath: `/booking/success?${params.toString()}`,
       });
 
       window.sessionStorage.removeItem(GIFT_DRAFT_STORAGE_KEY);
       window.location.assign(invoice.paymentUrl);
     } catch (error) {
-      setStepError(error instanceof Error ? error.message : "РќРµ СѓРґР°Р»РѕСЃСЊ РѕС„РѕСЂРјРёС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚.");
+      setStepError(error instanceof Error ? error.message : "Не удалось оформить сертификат.");
     } finally {
       setIsSubmitting(false);
     }
@@ -283,17 +326,17 @@ export default function GiftCertificateOrderForm() {
     }
 
     if (step === 1 && !validateForm()) {
-      setStepError("РџСЂРѕРІРµСЂСЊС‚Рµ РєРѕРЅС‚Р°РєС‚С‹ РїРѕР»СѓС‡Р°С‚РµР»СЏ, РїРѕРєСѓРїР°С‚РµР»СЏ Рё СЃРїРѕСЃРѕР± РѕС‚РїСЂР°РІРєРё РїРµСЂРµРґ РїСЂРѕРґРѕР»Р¶РµРЅРёРµРј.");
+      setStepError("Проверьте контакты получателя, покупателя и способ отправки перед продолжением.");
       return;
     }
 
     setStep(nextStep);
   }
 
-  const ofertaHref = `/oferta?returnTo=${encodeURIComponent("/gift-certificates")}`;
-  const privacyHref = `/privacy?returnTo=${encodeURIComponent("/gift-certificates")}`;
-  const siteTermsHref = `${ofertaHref}#section-1`;
-  const publicOfferHref = `${ofertaHref}#section-3`;
+  const siteTermsHref = "/terms-of-use";
+  const privacyHref = "/privacy-policy";
+  const publicOfferHref = "/public-offer";
+  const personalDataHref = "/personal-data-consent";
 
   return (
     <section
@@ -326,7 +369,7 @@ export default function GiftCertificateOrderForm() {
               <div className="forest-card p-4 lg:hidden">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РЎРµСЂС‚РёС„РёРєР°С‚</div>
+                    <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Сертификат</div>
                     <div className="mt-1 text-[1.08rem] font-black text-[#f6efdb]">{giftSteps[step]}</div>
                     <p className="mt-1 text-[0.82rem] leading-[1.42] text-[#efe4c8]/82">{giftStepNotes[step]}</p>
                   </div>
@@ -381,24 +424,24 @@ export default function GiftCertificateOrderForm() {
                   {step === 0 ? (
                     <div className="space-y-4">
                       <div>
-                        <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РЁР°Рі 1</div>
-                        <h2 className="mt-2 text-[1.45rem] font-black text-[#f6efdb] sm:text-[1.8rem]">РЎРѕР±РµСЂРёС‚Рµ СЃРµСЂС‚РёС„РёРєР°С‚ РїРѕ РєРѕР»РёС‡РµСЃС‚РІСѓ РіРѕСЃС‚РµР№</h2>
+                        <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг 1</div>
+                        <h2 className="mt-2 text-[1.45rem] font-black text-[#f6efdb] sm:text-[1.8rem]">Соберите сертификат по количеству гостей</h2>
                       </div>
 
                       <div className="rounded-[28px] border border-[#d6c388]/24 bg-[linear-gradient(180deg,rgba(24,50,16,.76)_0%,rgba(12,26,15,.9)_100%)] p-4 sm:p-6">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="rounded-full border border-[#d6c388]/26 bg-[rgba(255,255,255,.06)] px-3 py-1 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-[#e8d9b4]">
-                            РЎРµСЂС‚РёС„РёРєР°С‚ РЅР° РїРѕСЃРµС‰РµРЅРёРµ
+                            Сертификат на посещение
                           </span>
                           <span className="rounded-full border border-[#d0a165]/24 bg-[rgba(255,214,164,.08)] px-3 py-1 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-[#f2d28c]">
-                            Р”Рѕ 12 С‡РµР»РѕРІРµРє
+                            До 12 человек
                           </span>
                         </div>
 
                         <div className="mt-6 text-center">
                           <div className="text-[4.2rem] font-black leading-none text-[#f6efdb] sm:text-[5.4rem]">{guestCount}</div>
                           <div className="mt-2 text-[0.96rem] font-semibold text-[#efe4c8]/86">
-                            {guestCount} {getGuestWord(guestCount)} РІ СЃРµСЂС‚РёС„РёРєР°С‚Рµ
+                            {guestCount} {getGuestWord(guestCount)} в сертификате
                           </div>
                         </div>
 
@@ -408,7 +451,7 @@ export default function GiftCertificateOrderForm() {
                             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] text-[#f6efdb] disabled:opacity-50"
                             onClick={() => updateGuestCount(guestCount - 1)}
                             disabled={guestCount <= GIFT_GUEST_MIN}
-                            aria-label="РЈРјРµРЅСЊС€РёС‚СЊ РєРѕР»РёС‡РµСЃС‚РІРѕ РіРѕСЃС‚РµР№"
+                            aria-label="Уменьшить количество гостей"
                           >
                             <Minus size={18} />
                           </button>
@@ -421,7 +464,7 @@ export default function GiftCertificateOrderForm() {
                             value={guestCount}
                             onChange={(event) => updateGuestCount(Number(event.target.value))}
                             className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[linear-gradient(90deg,rgba(238,199,112,.92),rgba(140,184,91,.92))]"
-                            aria-label="РљРѕР»РёС‡РµСЃС‚РІРѕ РіРѕСЃС‚РµР№ РІ СЃРµСЂС‚РёС„РёРєР°С‚Рµ"
+                            aria-label="Количество гостей в сертификате"
                           />
 
                           <button
@@ -429,7 +472,7 @@ export default function GiftCertificateOrderForm() {
                             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d6c388]/28 bg-[rgba(255,255,255,.05)] text-[#f6efdb] disabled:opacity-50"
                             onClick={() => updateGuestCount(guestCount + 1)}
                             disabled={guestCount >= GIFT_GUEST_MAX}
-                            aria-label="РЈРІРµР»РёС‡РёС‚СЊ РєРѕР»РёС‡РµСЃС‚РІРѕ РіРѕСЃС‚РµР№"
+                            aria-label="Увеличить количество гостей"
                           >
                             <Plus size={18} />
                           </button>
@@ -441,9 +484,9 @@ export default function GiftCertificateOrderForm() {
                         </div>
 
                         <div className="mt-5 rounded-[22px] border border-[#d6c388]/20 bg-[rgba(255,255,255,.06)] px-4 py-4">
-                          <div className="text-[0.8rem] text-[#efe4c8]/74">РЎРµР№С‡Р°СЃ РґРµР№СЃС‚РІСѓРµС‚</div>
-                          <div className="mt-1 text-[1.08rem] font-black text-[#f2d28c]">{formatCurrency(pricePerGuest)} Р·Р° РѕРґРЅРѕРіРѕ РіРѕСЃС‚СЏ</div>
-                          <div className="mt-2 text-[0.82rem] text-[#efe4c8]/78">РџРѕР»РЅР°СЏ СЃС‚РѕРёРјРѕСЃС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚Р° СЃСЂР°Р·Сѓ: {formatCurrency(total)}</div>
+                          <div className="text-[0.8rem] text-[#efe4c8]/74">Сейчас действует</div>
+                          <div className="mt-1 text-[1.08rem] font-black text-[#f2d28c]">{formatCurrency(pricePerGuest)} за одного гостя</div>
+                          <div className="mt-2 text-[0.82rem] text-[#efe4c8]/78">Полная стоимость сертификата сразу: {formatCurrency(total)}</div>
                         </div>
                       </div>
 
@@ -452,25 +495,25 @@ export default function GiftCertificateOrderForm() {
                           <div className="inline-flex h-11 w-11 items-center justify-center rounded-[14px] border border-[#dbc788]/34 bg-[rgba(255,255,255,.05)] text-[#e0c973]">
                             <Gift size={18} />
                           </div>
-                          <div className="mt-3 text-[0.96rem] font-black text-[#f6efdb]">РўРѕР»СЊРєРѕ РЅР° РїРѕСЃРµС‰РµРЅРёРµ</div>
-                          <p className="mt-2 text-[0.84rem] leading-[1.55] text-[#efe4c8]/82">РџРѕРґР°СЂРѕС‡РЅС‹Рµ СЃРµСЂС‚РёС„РёРєР°С‚С‹ РѕС„РѕСЂРјР»СЏСЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РЅР° РІРёР·РёС‚ РІ Р°РЅС‚РёРєР°С„Рµ.</p>
+                          <div className="mt-3 text-[0.96rem] font-black text-[#f6efdb]">Только на посещение</div>
+                          <p className="mt-2 text-[0.84rem] leading-[1.55] text-[#efe4c8]/82">Подарочные сертификаты оформляются только на визит в антикафе.</p>
                         </article>
 
                         <article className="glass-leaf-card rounded-[24px] p-4">
                           <div className="inline-flex h-11 w-11 items-center justify-center rounded-[14px] border border-[#dbc788]/34 bg-[rgba(255,255,255,.05)] text-[#e0c973]">
                             <span className="text-[0.86rem] font-black">1-12</span>
                           </div>
-                          <div className="mt-3 text-[0.96rem] font-black text-[#f6efdb]">Р“РёР±РєРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ РіРѕСЃС‚РµР№</div>
-                          <p className="mt-2 text-[0.84rem] leading-[1.55] text-[#efe4c8]/82">РљРѕР»РёС‡РµСЃС‚РІРѕ РіРѕСЃС‚РµР№ РІ СЃРµСЂС‚РёС„РёРєР°С‚Рµ РјРѕР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ РѕС‚ 1 РґРѕ 12 С‡РµР»РѕРІРµРє.</p>
+                          <div className="mt-3 text-[0.96rem] font-black text-[#f6efdb]">Гибкое количество гостей</div>
+                          <p className="mt-2 text-[0.84rem] leading-[1.55] text-[#efe4c8]/82">Количество гостей в сертификате можно выбрать от 1 до 12 человек.</p>
                         </article>
 
                         <article className="glass-leaf-card rounded-[24px] border-[#e2c55f]/28 p-4">
                           <div className="inline-flex h-11 w-11 items-center justify-center rounded-[14px] border border-[#dbc788]/34 bg-[rgba(255,255,255,.05)] text-[#e0c973]">
-                            <span className="text-[1rem] font-black">в‚Ѕ</span>
+                            <span className="text-[1rem] font-black">₽</span>
                           </div>
-                          <div className="mt-3 text-[0.96rem] font-black text-[#f6efdb]">РџСЂРѕСЃС‚Р°СЏ С†РµРЅР°</div>
+                          <div className="mt-3 text-[0.96rem] font-black text-[#f6efdb]">Простая цена</div>
                           <p className="mt-2 text-[0.84rem] leading-[1.55] text-[#efe4c8]/82">
-                            РЎС‚РѕРёРјРѕСЃС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚Р° 1 500 в‚Ѕ РЅР° С‡РµР»РѕРІРµРєР°, Р° РґР»СЏ РіСЂСѓРїРїС‹ РѕС‚ 3 РґРѕ 12 С‡РµР»РѕРІРµРє С†РµРЅР° СЃРЅРёР¶Р°РµС‚СЃСЏ РґРѕ 1 200 в‚Ѕ Р·Р° РіРѕСЃС‚СЏ.
+                            Стоимость сертификата 1 500 ₽ на человека, а для группы от 3 до 12 человек цена снижается до 1 200 ₽ за гостя.
                           </p>
                         </article>
                       </div>
@@ -478,30 +521,30 @@ export default function GiftCertificateOrderForm() {
                   ) : (
                     <div className="space-y-4">
                       <div>
-                        <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РЁР°Рі 2</div>
-                        <h2 className="mt-2 text-[1.45rem] font-black text-[#f6efdb] sm:text-[1.8rem]">РЈРєР°Р¶РёС‚Рµ, РєРѕРјСѓ Рё РєР°Рє РѕС‚РїСЂР°РІРёС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚</h2>
+                        <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг 2</div>
+                        <h2 className="mt-2 text-[1.45rem] font-black text-[#f6efdb] sm:text-[1.8rem]">Укажите, кому и как отправить сертификат</h2>
                       </div>
 
                       <div className="space-y-4">
                         <section className="rounded-[24px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] p-4">
                           <div className="mb-4">
-                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РџРѕРєСѓРїР°С‚РµР»СЊ</div>
-                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">РљС‚Рѕ РѕРїР»Р°С‡РёРІР°РµС‚ СЃРµСЂС‚РёС„РёРєР°С‚</h3>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Покупатель</div>
+                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Кто оплачивает сертификат</h3>
                           </div>
 
                           <div className="grid gap-3 sm:grid-cols-2">
                             <label className="block">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РРјСЏ РїРѕРєСѓРїР°С‚РµР»СЏ</span>
-                              <input className="field-paper rounded-2xl px-4 py-3" placeholder="Р’Р°С€Рµ РёРјСЏ" value={values.purchaserName} onChange={(e) => updateField("purchaserName", e.target.value)} />
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Имя покупателя</span>
+                              <input className="field-paper rounded-2xl px-4 py-3" placeholder="Ваше имя" value={values.purchaserName} onChange={(e) => updateField("purchaserName", e.target.value)} />
                               {errors.purchaserName ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.purchaserName}</span> : null}
                             </label>
                             <label className="block">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РўРµР»РµС„РѕРЅ РїРѕРєСѓРїР°С‚РµР»СЏ</span>
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон покупателя</span>
                               <input className="field-paper rounded-2xl px-4 py-3" placeholder="+7 (___) ___-__-__" value={values.purchaserPhone} onChange={(e) => updateField("purchaserPhone", e.target.value)} />
                               {errors.purchaserPhone ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.purchaserPhone}</span> : null}
                             </label>
                             <label className="block sm:col-span-2">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Email РїРѕРєСѓРїР°С‚РµР»СЏ</span>
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Email покупателя</span>
                               <input className="field-paper rounded-2xl px-4 py-3" placeholder="mail@example.com" value={values.purchaserEmail} onChange={(e) => updateField("purchaserEmail", e.target.value)} />
                               {errors.purchaserEmail ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.purchaserEmail}</span> : null}
                             </label>
@@ -510,23 +553,23 @@ export default function GiftCertificateOrderForm() {
 
                         <section className="rounded-[24px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] p-4">
                           <div className="mb-4">
-                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РџРѕР»СѓС‡Р°С‚РµР»СЊ</div>
-                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Р”Р»СЏ РєРѕРіРѕ РіРѕС‚РѕРІРёРј РїРѕРґР°СЂРѕРє</h3>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Получатель</div>
+                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Для кого готовим подарок</h3>
                           </div>
 
                           <div className="grid gap-3 sm:grid-cols-2">
                             <label className="block">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РРјСЏ РїРѕР»СѓС‡Р°С‚РµР»СЏ</span>
-                              <input className="field-paper rounded-2xl px-4 py-3" placeholder="РРјСЏ РїРѕР»СѓС‡Р°С‚РµР»СЏ" value={values.recipientName} onChange={(e) => updateField("recipientName", e.target.value)} />
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Имя получателя</span>
+                              <input className="field-paper rounded-2xl px-4 py-3" placeholder="Имя получателя" value={values.recipientName} onChange={(e) => updateField("recipientName", e.target.value)} />
                               {errors.recipientName ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.recipientName}</span> : null}
                             </label>
                             <label className="block">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РўРµР»РµС„РѕРЅ РїРѕР»СѓС‡Р°С‚РµР»СЏ</span>
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Телефон получателя</span>
                               <input className="field-paper rounded-2xl px-4 py-3" placeholder="+7 (___) ___-__-__" value={values.recipientPhone} onChange={(e) => updateField("recipientPhone", e.target.value)} />
                               {errors.recipientPhone ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.recipientPhone}</span> : null}
                             </label>
                             <label className="block sm:col-span-2">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Email РїРѕР»СѓС‡Р°С‚РµР»СЏ</span>
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Email получателя</span>
                               <input className="field-paper rounded-2xl px-4 py-3" placeholder="mail@example.com" value={values.recipientEmail} onChange={(e) => updateField("recipientEmail", e.target.value)} />
                               {errors.recipientEmail ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.recipientEmail}</span> : null}
                             </label>
@@ -535,8 +578,8 @@ export default function GiftCertificateOrderForm() {
 
                         <section className="rounded-[24px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] p-4">
                           <div className="mb-4">
-                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РћС‚РїСЂР°РІРєР°</div>
-                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Р’С‹Р±РµСЂРёС‚Рµ СѓРґРѕР±РЅС‹Р№ СЃРїРѕСЃРѕР± РїРµСЂРµРґР°С‡Рё</h3>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Отправка</div>
+                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Выберите удобный способ передачи</h3>
                           </div>
 
                           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -572,19 +615,19 @@ export default function GiftCertificateOrderForm() {
 
                         <section className="rounded-[24px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.04)] p-4">
                           <div className="mb-4">
-                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РўРµРєСЃС‚С‹</div>
-                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Р”РѕР±Р°РІСЊС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ Рё Р·Р°РјРµС‚РєСѓ</h3>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Тексты</div>
+                            <h3 className="mt-1 text-[1rem] font-black text-[#f6efdb]">Добавьте сообщение и заметку</h3>
                           </div>
 
                           <div className="grid gap-3">
                             <label className="block">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РўРµРєСЃС‚ РїРѕР»СѓС‡Р°С‚РµР»СЋ</span>
-                              <textarea className="field-paper min-h-[110px] rounded-2xl px-4 py-3" placeholder="РќР°РїРёС€РёС‚Рµ РїРѕР·РґСЂР°РІР»РµРЅРёРµ РёР»Рё РєРѕСЂРѕС‚РєРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ" value={values.message} onChange={(e) => updateField("message", e.target.value)} />
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Текст получателю</span>
+                              <textarea className="field-paper min-h-[110px] rounded-2xl px-4 py-3" placeholder="Напишите поздравление или короткое сообщение" value={values.message} onChange={(e) => updateField("message", e.target.value)} />
                               {errors.message ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.message}</span> : null}
                             </label>
                             <label className="block">
-                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">РљРѕРјРјРµРЅС‚Р°СЂРёР№</span>
-                              <textarea className="field-paper min-h-[96px] rounded-2xl px-4 py-3" placeholder="Р”РµС‚Р°Р»Рё РѕС„РѕСЂРјР»РµРЅРёСЏ РёР»Рё РїРѕР¶РµР»Р°РЅРёСЏ РїРѕ РѕС‚РїСЂР°РІРєРµ" value={values.comment} onChange={(e) => updateField("comment", e.target.value)} />
+                              <span className="mb-2 block text-[0.82rem] font-semibold text-[#efe4c8]/86">Комментарий</span>
+                              <textarea className="field-paper min-h-[96px] rounded-2xl px-4 py-3" placeholder="Детали оформления или пожелания по отправке" value={values.comment} onChange={(e) => updateField("comment", e.target.value)} />
                               {errors.comment ? <span className="mt-1.5 block text-[0.76rem] text-[#ffb3b3]">{errors.comment}</span> : null}
                             </label>
                           </div>
@@ -616,17 +659,15 @@ export default function GiftCertificateOrderForm() {
                                 <Check size={14} />
                               </span>
                               <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
-                                Я принимаю{" "}
-                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={siteTermsHref}>
-                                  условия использования
-                                </a>
-                                {", "}
-                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={privacyHref}>
-                                  политику конфиденциальности
-                                </a>
-                                {" "}и{" "}
-                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={publicOfferHref}>
-                                  публичную оферту
+                                Я даю согласие на{" "}
+                                <a
+                                  className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
+                                  href={personalDataHref}
+                                  onMouseDown={handleLegalLinkIntent}
+                                  onTouchStart={handleLegalLinkIntent}
+                                  onClick={handleLegalLinkIntent}
+                                >
+                                  обработку моих персональных данных
                                 </a>
                                 .
                               </span>
@@ -660,15 +701,33 @@ export default function GiftCertificateOrderForm() {
                               </span>
                               <span className="text-[0.92rem] leading-[1.55] text-[#f6efdb]">
                                 Я принимаю{" "}
-                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={siteTermsHref}>
+                                <a
+                                  className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
+                                  href={siteTermsHref}
+                                  onMouseDown={handleLegalLinkIntent}
+                                  onTouchStart={handleLegalLinkIntent}
+                                  onClick={handleLegalLinkIntent}
+                                >
                                   условия использования
                                 </a>
                                 {", "}
-                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={privacyHref}>
+                                <a
+                                  className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
+                                  href={privacyHref}
+                                  onMouseDown={handleLegalLinkIntent}
+                                  onTouchStart={handleLegalLinkIntent}
+                                  onClick={handleLegalLinkIntent}
+                                >
                                   политику конфиденциальности
                                 </a>
                                 {" "}и{" "}
-                                <a className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline" href={publicOfferHref}>
+                                <a
+                                  className="font-bold text-[#f2d28c] no-underline underline-offset-4 hover:text-white hover:underline"
+                                  href={publicOfferHref}
+                                  onMouseDown={handleLegalLinkIntent}
+                                  onTouchStart={handleLegalLinkIntent}
+                                  onClick={handleLegalLinkIntent}
+                                >
                                   публичную оферту
                                 </a>
                                 .
@@ -692,20 +751,20 @@ export default function GiftCertificateOrderForm() {
 
                   <div className="mt-5 hidden items-center justify-between gap-3 border-t border-[#d6c388]/16 pt-4 lg:flex">
                     <div className="rounded-[20px] border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-4 py-3">
-                      <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">РЎРµР№С‡Р°СЃ РІ СЃРµСЂС‚РёС„РёРєР°С‚Рµ</div>
+                      <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас в сертификате</div>
                       <div className="mt-1 text-[0.86rem] font-bold text-[#f6efdb]">{mobileSelectionNote}</div>
                     </div>
                     <div className="flex gap-2">
                       <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
-                        РќР°Р·Р°Рґ
+                        Назад
                       </button>
                       {step < giftSteps.length - 1 ? (
                         <button type="button" className="btn-forest min-h-[44px] px-4" onClick={() => goToStep(step + 1)}>
-                          РџСЂРѕРґРѕР»Р¶РёС‚СЊ
+                          Продолжить
                         </button>
                       ) : (
                         <button type="button" className="btn-forest min-h-[44px] px-4" onClick={submitGiftOrder} disabled={isSubmitting}>
-                          РћРїР»Р°С‚РёС‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚
+                          Оплатить сертификат
                         </button>
                       )}
                     </div>
@@ -717,7 +776,7 @@ export default function GiftCertificateOrderForm() {
                 <div className="mx-auto max-w-[780px] rounded-[26px] border border-[#d6c388]/28 bg-[rgba(12,25,15,.96)] p-3 shadow-[0_18px_40px_rgba(0,0,0,.35)] backdrop-blur-xl">
                   <div className="mb-3 flex items-center justify-between gap-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
                     <div>
-                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">РЎРµР№С‡Р°СЃ</div>
+                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас</div>
                       <div className="mt-1 text-[0.82rem] leading-[1.3] text-[#f6efdb]">{mobileSelectionNote}</div>
                     </div>
                     <strong className="shrink-0 text-[1rem] text-[#f7efdc]">{formatCurrency(total)}</strong>
@@ -725,15 +784,15 @@ export default function GiftCertificateOrderForm() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
-                      РќР°Р·Р°Рґ
+                      Назад
                     </button>
                     {step < giftSteps.length - 1 ? (
                       <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={() => goToStep(step + 1)}>
-                        РџСЂРѕРґРѕР»Р¶РёС‚СЊ
+                        Продолжить
                       </button>
                     ) : (
                       <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={submitGiftOrder} disabled={isSubmitting}>
-                        РћРїР»Р°С‚РёС‚СЊ
+                        Оплатить
                       </button>
                     )}
                   </div>
@@ -744,34 +803,34 @@ export default function GiftCertificateOrderForm() {
             <aside className="hidden lg:block lg:sticky lg:top-24">
               <div className="forest-card p-5">
                 <div className="border-b border-[#d6c388]/16 pb-4">
-                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">РЎРІРѕРґРєР° РїРѕ СЃРµСЂС‚РёС„РёРєР°С‚Сѓ</div>
-                  <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Р§С‚Рѕ РѕРїР»Р°С‚РёС‚СЃСЏ СЃРµР№С‡Р°СЃ</h3>
-                  <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">РЎРµСЂС‚РёС„РёРєР°С‚ РѕРїР»Р°С‡РёРІР°РµС‚СЃСЏ РїРѕР»РЅРѕСЃС‚СЊСЋ СЃСЂР°Р·Сѓ Рё РїРѕСЃР»Рµ РѕРїР»Р°С‚С‹ СЃСЂР°Р·Сѓ СЃРѕС…СЂР°РЅСЏРµС‚СЃСЏ РІ CRM.</p>
+                  <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Сводка по сертификату</div>
+                  <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Что оплатится сейчас</h3>
+                  <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">Сертификат оплачивается полностью сразу, и после оплаты заказ сразу сохраняется.</p>
                 </div>
 
                 <div className="mt-5 space-y-5">
                   <div className="summary-group">
                     <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
                       <Gift size={15} />
-                      РЎРµСЂС‚РёС„РёРєР°С‚
+                      Сертификат
                     </span>
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                        <span className="text-[0.84rem] text-[#efe4c8]/72">Р¤РѕСЂРјР°С‚</span>
-                        <strong className="text-[0.84rem] text-[#f7efdc]">РќР° РїРѕСЃРµС‰РµРЅРёРµ</strong>
+                        <span className="text-[0.84rem] text-[#efe4c8]/72">Формат</span>
+                        <strong className="text-[0.84rem] text-[#f7efdc]">На посещение</strong>
                       </div>
                       <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                        <span className="text-[0.84rem] text-[#efe4c8]/72">Р“РѕСЃС‚РµР№</span>
+                        <span className="text-[0.84rem] text-[#efe4c8]/72">Гостей</span>
                         <strong className="text-[0.84rem] text-[#f7efdc]">
                           {guestCount} {getGuestWord(guestCount)}
                         </strong>
                       </div>
                       <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                        <span className="text-[0.84rem] text-[#efe4c8]/72">Р¦РµРЅР° Р·Р° РіРѕСЃС‚СЏ</span>
+                        <span className="text-[0.84rem] text-[#efe4c8]/72">Цена за гостя</span>
                         <strong className="text-[0.84rem] text-[#f7efdc]">{formatCurrency(pricePerGuest)}</strong>
                       </div>
                       <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                        <span className="text-[0.84rem] text-[#efe4c8]/72">РћС‚РїСЂР°РІРєР°</span>
+                        <span className="text-[0.84rem] text-[#efe4c8]/72">Отправка</span>
                         <strong className="text-[0.84rem] text-[#f7efdc]">{deliveryMethod}</strong>
                       </div>
                     </div>
@@ -780,20 +839,20 @@ export default function GiftCertificateOrderForm() {
                   <div className="summary-group">
                     <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
                       <Mail size={15} />
-                      РљРѕРЅС‚Р°РєС‚С‹
+                      Контакты
                     </span>
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                        <span className="text-[0.84rem] text-[#efe4c8]/72">РџРѕРєСѓРїР°С‚РµР»СЊ</span>
-                        <strong className="text-right text-[0.84rem] text-[#f7efdc]">{values.purchaserName || "РЈРєР°Р¶РёС‚Рµ РЅР° С€Р°РіРµ 2"}</strong>
+                        <span className="text-[0.84rem] text-[#efe4c8]/72">Покупатель</span>
+                        <strong className="text-right text-[0.84rem] text-[#f7efdc]">{values.purchaserName || "Укажите на шаге 2"}</strong>
                       </div>
                       <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                        <span className="text-[0.84rem] text-[#efe4c8]/72">РџРѕР»СѓС‡Р°С‚РµР»СЊ</span>
-                        <strong className="text-right text-[0.84rem] text-[#f7efdc]">{values.recipientName || "РЈРєР°Р¶РёС‚Рµ РЅР° С€Р°РіРµ 2"}</strong>
+                        <span className="text-[0.84rem] text-[#efe4c8]/72">Получатель</span>
+                        <strong className="text-right text-[0.84rem] text-[#f7efdc]">{values.recipientName || "Укажите на шаге 2"}</strong>
                       </div>
                       {values.deliveryContact ? (
                         <div className="flex items-center justify-between rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
-                          <span className="text-[0.84rem] text-[#efe4c8]/72">РљРѕРЅС‚Р°РєС‚ РґР»СЏ РѕС‚РїСЂР°РІРєРё</span>
+                          <span className="text-[0.84rem] text-[#efe4c8]/72">Контакт для отправки</span>
                           <strong className="text-right text-[0.84rem] text-[#f7efdc]">{values.deliveryContact}</strong>
                         </div>
                       ) : null}
@@ -802,7 +861,7 @@ export default function GiftCertificateOrderForm() {
                 </div>
 
                 <div className="mt-5 rounded-[22px] border border-[#8fad5e]/34 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.18)_100%)] px-4 py-4">
-                  <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#dbe8be]">РџРѕР»РЅР°СЏ СЃС‚РѕРёРјРѕСЃС‚СЊ</div>
+                  <div className="text-[0.72rem] uppercase tracking-[0.16em] text-[#dbe8be]">Полная стоимость</div>
                   <div className="mt-2 text-[1.2rem] font-black text-[#f6efdb]">{formatCurrency(total)}</div>
                 </div>
 

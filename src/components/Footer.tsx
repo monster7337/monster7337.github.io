@@ -133,7 +133,7 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
                 <span>ОГРН {BOOKING_CONTACTS.ogrn}</span>
               </div>
             </div>
-            <Link href="/privacy" className="text-[0.82rem] text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
+            <Link href="/privacy-policy" className="text-[0.82rem] text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
               Политика конфиденциальности
             </Link>
           </div>

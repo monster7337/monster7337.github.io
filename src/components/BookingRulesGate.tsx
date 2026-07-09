@@ -192,7 +192,7 @@ export default function BookingRulesGate() {
     <AnimatePresence>
       {isOpen ? (
         <motion.div
-          className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-[120] overflow-y-auto overscroll-contain p-4 [-webkit-overflow-scrolling:touch] sm:flex sm:items-center sm:justify-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -215,7 +215,7 @@ export default function BookingRulesGate() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-[720px] overflow-hidden rounded-[30px] border border-[#d6c388]/30 bg-[linear-gradient(180deg,rgba(15,36,21,.98),rgba(8,20,12,.98))] p-5 text-[#f6efdb] shadow-[0_32px_90px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.08)] sm:rounded-[34px] sm:p-7"
+            className="relative mx-auto my-3 flex max-h-[calc(100dvh-2rem)] w-full max-w-[720px] flex-col overflow-hidden rounded-[30px] border border-[#d6c388]/30 bg-[linear-gradient(180deg,rgba(15,36,21,.98),rgba(8,20,12,.98))] p-5 text-[#f6efdb] shadow-[0_32px_90px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.08)] sm:my-0 sm:max-h-[calc(100dvh-3rem)] sm:rounded-[34px] sm:p-7"
           >
             <div className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(228,203,122,.24)_0%,rgba(228,203,122,0)_72%)]" />
             <div className="pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(118,159,48,.18)_0%,rgba(118,159,48,0)_72%)]" />
@@ -229,7 +229,7 @@ export default function BookingRulesGate() {
               <X size={18} />
             </button>
 
-            <div className="relative z-[1]">
+            <div className="relative z-[1] shrink-0">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-3 py-2 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-[#e7d8b1]">
                 <Sparkles size={14} />
                 Перед записью
@@ -244,50 +244,52 @@ export default function BookingRulesGate() {
               </p>
             </div>
 
-            <div className="relative z-[1] mt-6 grid gap-3">
-              {rules.map((rule, index) => (
-                <button
-                  key={rule}
-                  type="button"
-                  onClick={() => toggleRule(index)}
-                  aria-pressed={acceptedRules[index]}
-                  className="grid w-full grid-cols-[auto_1fr_auto] items-start gap-3 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3.5 text-left transition hover:-translate-y-px hover:border-[#d6c388]/30 hover:bg-[rgba(255,255,255,.07)]"
-                >
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#d6c388]/22 bg-[rgba(214,195,136,.08)] text-[#e9cf82]">
-                    <PawPrint size={16} />
-                  </span>
-                  <span className="pt-1 text-[0.92rem] leading-[1.58] text-[#f5edd8]/92">{rule}</span>
-                  <span
-                    className={`mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full border transition ${
-                      acceptedRules[index]
-                        ? "border-[#d9d37f]/60 bg-[rgba(201,222,126,.18)] text-[#dff2a1]"
-                        : "border-[#d6c388]/26 bg-[rgba(255,255,255,.04)] text-transparent"
-                    }`}
+            <div className="relative z-[1] -mx-2 mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-1 [-webkit-overflow-scrolling:touch] sm:mt-6">
+              <div className="grid gap-3">
+                {rules.map((rule, index) => (
+                  <button
+                    key={rule}
+                    type="button"
+                    onClick={() => toggleRule(index)}
+                    aria-pressed={acceptedRules[index]}
+                    className="grid w-full touch-manipulation grid-cols-[auto_1fr_auto] items-start gap-3 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3.5 text-left transition hover:-translate-y-px hover:border-[#d6c388]/30 hover:bg-[rgba(255,255,255,.07)]"
                   >
-                    {acceptedRules[index] ? <Check size={15} /> : null}
-                  </span>
-                </button>
-              ))}
+                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#d6c388]/22 bg-[rgba(214,195,136,.08)] text-[#e9cf82]">
+                      <PawPrint size={16} />
+                    </span>
+                    <span className="pt-1 text-[0.92rem] leading-[1.58] text-[#f5edd8]/92">{rule}</span>
+                    <span
+                      className={`mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full border transition ${
+                        acceptedRules[index]
+                          ? "border-[#d9d37f]/60 bg-[rgba(201,222,126,.18)] text-[#dff2a1]"
+                          : "border-[#d6c388]/26 bg-[rgba(255,255,255,.04)] text-transparent"
+                      }`}
+                    >
+                      {acceptedRules[index] ? <Check size={15} /> : null}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 grid grid-cols-[auto_1fr] items-start gap-3 rounded-[22px] border border-[#9dbd52]/24 bg-[rgba(128,168,58,.1)] px-4 py-3.5 text-[#eef1cf]">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#c7de7e]/18 bg-[rgba(199,222,126,.08)] text-[#d4e58e]">
+                  <ShieldCheck size={17} />
+                </span>
+                <span className="pt-1 text-[0.9rem] leading-[1.58]">
+                  Продолжая, вы подтверждаете, что готовы соблюдать правила поведения в пространстве.
+                </span>
+              </div>
             </div>
 
-            <div className="relative z-[1] mt-4 grid grid-cols-[auto_1fr] items-start gap-3 rounded-[22px] border border-[#9dbd52]/24 bg-[rgba(128,168,58,.1)] px-4 py-3.5 text-[#eef1cf]">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#c7de7e]/18 bg-[rgba(199,222,126,.08)] text-[#d4e58e]">
-                <ShieldCheck size={17} />
-              </span>
-              <span className="pt-1 text-[0.9rem] leading-[1.58]">
-                Продолжая, вы подтверждаете, что готовы соблюдать правила поведения в пространстве.
-              </span>
-            </div>
-
-            <div className="relative z-[1] mt-5 flex flex-col gap-3 sm:flex-row">
-              <button type="button" onClick={close} className="btn-cream min-h-[48px] flex-1 border-0 text-[0.95rem]">
+            <div className="relative z-[1] mt-5 flex shrink-0 flex-col gap-3 sm:flex-row">
+              <button type="button" onClick={close} className="btn-cream min-h-[48px] flex-1 touch-manipulation border-0 text-[0.95rem]">
                 Вернуться
               </button>
               <button
                 type="button"
                 onClick={proceed}
                 disabled={!allAccepted}
-                className="btn-forest min-h-[48px] flex-1 text-[0.95rem] disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-75"
+                className="btn-forest min-h-[48px] flex-1 touch-manipulation text-[0.95rem] disabled:cursor-not-allowed disabled:opacity-60 disabled:saturate-75"
               >
                 <span className="inline-flex items-center gap-2">
                   <Heart size={16} />

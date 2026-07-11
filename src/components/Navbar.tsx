@@ -10,6 +10,7 @@ import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 type NavbarProps = {
   onOpenBooking: () => void;
   homeHrefPrefix?: string;
+  bookingMode?: boolean;
 };
 
 const navSections = [
@@ -20,7 +21,7 @@ const navSections = [
   { label: "Контакты", href: "#contacts" },
 ];
 
-export default function Navbar({ onOpenBooking, homeHrefPrefix = "" }: NavbarProps) {
+export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
@@ -95,14 +96,20 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "" }: NavbarPro
               <Phone size={18} />
             </a>
 
-            <motion.button
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleBooking}
-              className="btn-forest mobile-booking-pulse flex-1 rounded-[16px] px-4 py-3 text-[0.9rem]"
-            >
-              Записаться
-            </motion.button>
+            {bookingMode ? (
+              <Link href="/" className="btn-cream flex-1 rounded-[16px] px-4 py-3 text-[0.9rem]">
+                На главную
+              </Link>
+            ) : (
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBooking}
+                className="btn-forest mobile-booking-pulse flex-1 rounded-[16px] px-4 py-3 text-[0.9rem]"
+              >
+                Записаться
+              </motion.button>
+            )}
 
             <button
               type="button"

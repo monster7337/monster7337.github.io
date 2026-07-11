@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Heart, Leaf, PawPrint, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Check, Heart, Leaf, PawPrint, X } from "lucide-react";
 
 const OPEN_EVENT = "v-elkah:booking-gate-open";
 const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
@@ -192,7 +192,7 @@ export default function BookingRulesGate() {
     <AnimatePresence>
       {isOpen ? (
         <motion.div
-          className="fixed inset-0 z-[120] overflow-y-auto overscroll-contain p-4 [-webkit-overflow-scrolling:touch] sm:flex sm:items-center sm:justify-center sm:p-6"
+          className="fixed inset-0 z-[120] overflow-hidden p-3 sm:flex sm:items-center sm:justify-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -215,7 +215,7 @@ export default function BookingRulesGate() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.97 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="relative mx-auto my-3 flex max-h-[calc(100dvh-2rem)] w-full max-w-[720px] flex-col overflow-hidden rounded-[30px] border border-[#d6c388]/30 bg-[linear-gradient(180deg,rgba(15,36,21,.98),rgba(8,20,12,.98))] p-5 text-[#f6efdb] shadow-[0_32px_90px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.08)] sm:my-0 sm:max-h-[calc(100dvh-3rem)] sm:rounded-[34px] sm:p-7"
+            className="relative mx-auto flex w-full max-w-[720px] flex-col overflow-hidden rounded-[30px] border border-[#d6c388]/30 bg-[linear-gradient(180deg,rgba(15,36,21,.98),rgba(8,20,12,.98))] p-4 text-[#f6efdb] shadow-[0_32px_90px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.08)] sm:rounded-[34px] sm:p-7"
           >
             <div className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(228,203,122,.24)_0%,rgba(228,203,122,0)_72%)]" />
             <div className="pointer-events-none absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(118,159,48,.18)_0%,rgba(118,159,48,0)_72%)]" />
@@ -229,22 +229,13 @@ export default function BookingRulesGate() {
               <X size={18} />
             </button>
 
-            <div className="relative z-[1] shrink-0">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] px-3 py-2 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-[#e7d8b1]">
-                <Sparkles size={14} />
-                Перед записью
-              </div>
-
-              <h2 id="elkah-booking-gate-title" className="mt-4 max-w-[560px] text-[1.9rem] font-black leading-[1.02] text-[#f6efdb] sm:text-[2.8rem]">
-                Несколько тёплых правил для спокойного визита
+            <div className="relative z-[1] shrink-0 pr-10">
+              <h2 id="elkah-booking-gate-title" className="text-[1.55rem] font-black leading-[1.02] text-[#f6efdb] sm:text-[2.2rem]">
+                Правила поведения
               </h2>
-
-              <p className="mt-3 max-w-[560px] text-[0.95rem] leading-[1.65] text-[#efe4c8]/82">
-                У нас бережная атмосфера, и мы хотим её сохранить. Перед переходом к бронированию подтвердите, пожалуйста, три коротких правила поведения.
-              </p>
             </div>
 
-            <div className="relative z-[1] -mx-2 mt-5 min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-1 [-webkit-overflow-scrolling:touch] sm:mt-6">
+            <div className="relative z-[1] mt-4 sm:mt-5">
               <div className="grid gap-3">
                 {rules.map((rule, index) => (
                   <button
@@ -252,12 +243,12 @@ export default function BookingRulesGate() {
                     type="button"
                     onClick={() => toggleRule(index)}
                     aria-pressed={acceptedRules[index]}
-                    className="grid w-full touch-manipulation grid-cols-[auto_1fr_auto] items-start gap-3 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3.5 text-left transition hover:-translate-y-px hover:border-[#d6c388]/30 hover:bg-[rgba(255,255,255,.07)]"
+                    className="grid w-full touch-manipulation grid-cols-[auto_1fr_auto] items-start gap-3 rounded-[20px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5 text-left transition hover:-translate-y-px hover:border-[#d6c388]/30 hover:bg-[rgba(255,255,255,.07)] sm:px-4 sm:py-3.5"
                   >
-                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#d6c388]/22 bg-[rgba(214,195,136,.08)] text-[#e9cf82]">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#d6c388]/22 bg-[rgba(214,195,136,.08)] text-[#e9cf82] sm:h-9 sm:w-9">
                       <PawPrint size={16} />
                     </span>
-                    <span className="pt-1 text-[0.92rem] leading-[1.58] text-[#f5edd8]/92">{rule}</span>
+                    <span className="pt-0.5 text-[0.8rem] leading-[1.42] text-[#f5edd8]/92 sm:pt-1 sm:text-[0.92rem] sm:leading-[1.58]">{rule}</span>
                     <span
                       className={`mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full border transition ${
                         acceptedRules[index]
@@ -271,17 +262,9 @@ export default function BookingRulesGate() {
                 ))}
               </div>
 
-              <div className="mt-4 grid grid-cols-[auto_1fr] items-start gap-3 rounded-[22px] border border-[#9dbd52]/24 bg-[rgba(128,168,58,.1)] px-4 py-3.5 text-[#eef1cf]">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#c7de7e]/18 bg-[rgba(199,222,126,.08)] text-[#d4e58e]">
-                  <ShieldCheck size={17} />
-                </span>
-                <span className="pt-1 text-[0.9rem] leading-[1.58]">
-                  Продолжая, вы подтверждаете, что готовы соблюдать правила поведения в пространстве.
-                </span>
-              </div>
             </div>
 
-            <div className="relative z-[1] mt-5 flex shrink-0 flex-col gap-3 sm:flex-row">
+            <div className="relative z-[1] mt-4 flex shrink-0 flex-col gap-2 sm:mt-5 sm:flex-row sm:gap-3">
               <button type="button" onClick={close} className="btn-cream min-h-[48px] flex-1 touch-manipulation border-0 text-[0.95rem]">
                 Вернуться
               </button>

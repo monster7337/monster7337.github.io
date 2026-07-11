@@ -15,6 +15,8 @@ export default function Hero({ onOpenBooking }: HeroProps) {
           <img
             src="/bg/heromobile.webp"
             alt='Антикафе "В Ёлках"'
+            width={1600}
+            height={900}
             fetchPriority="high"
             decoding="async"
             className="h-full w-full object-cover object-[50%_12%] sm:-translate-x-[1%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-[52%_50%]"

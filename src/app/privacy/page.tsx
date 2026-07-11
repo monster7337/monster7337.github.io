@@ -1,5 +1,7 @@
 import LegalPage from "@/components/LegalPage";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 const sections = [
   {
     title: "1. Перечень персональных данных",

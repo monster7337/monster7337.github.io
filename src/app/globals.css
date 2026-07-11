@@ -178,6 +178,195 @@ body {
 
 }
 
+@media (max-width: 767px) {
+  html:has(main.booking-mobile-app),
+  body:has(main.booking-mobile-app) {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  main.booking-mobile-app {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  main.booking-mobile-app > .booking-page-hero,
+  main.booking-mobile-app > footer {
+    display: none;
+  }
+
+  .booking-mobile-stage {
+    height: calc(100dvh - 72px);
+    min-height: 0;
+    overflow: hidden;
+    border: 0;
+    padding: 8px 12px 118px;
+  }
+
+  .booking-mobile-stage > .container-x,
+  .booking-mobile-stage > .container-x > div,
+  .booking-app-layout,
+  .booking-app-layout > div:first-child {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .booking-app-layout {
+    display: block;
+  }
+
+  .booking-app-overview {
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+  }
+
+  .booking-app-overview p,
+  .booking-app-overview > div:nth-child(2),
+  .booking-app-step-tabs,
+  .booking-app-layout > aside {
+    display: none;
+  }
+
+  .booking-app-overview .mt-1 {
+    margin-top: 0;
+  }
+
+  .booking-app-overview .text-\[1\.08rem\] {
+    font-size: 1rem;
+  }
+
+  .booking-app-panel {
+    display: flex;
+    min-height: 0;
+    height: calc(100% - 60px);
+    flex-direction: column;
+    margin-top: 8px;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .booking-app-panel > .border-b {
+    display: none;
+  }
+
+  .booking-app-panel > .mt-5 {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .booking-mobile-ticket-grid {
+    align-content: start;
+    gap: 8px;
+  }
+
+  .booking-mobile-ticket-grid > article {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .booking-mobile-ticket-grid > article p,
+  .booking-mobile-ticket-grid > article > div:first-child button,
+  .booking-mobile-ticket-grid > article > span,
+  .booking-mobile-ticket-grid > article > div:nth-of-type(2) {
+    display: none;
+  }
+
+  .booking-mobile-ticket-grid > article h4 {
+    margin-top: 4px;
+  }
+
+  .booking-mobile-ticket-grid > article > div:last-child {
+    padding-top: 8px;
+  }
+
+  .booking-mobile-date-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-auto-columns: calc((100% - 8px) / 2);
+    gap: 8px;
+    max-height: 330px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .booking-mobile-date-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .booking-mobile-date-grid > button {
+    scroll-snap-align: start;
+  }
+
+  .booking-mobile-time-grid {
+    gap: 8px;
+  }
+
+  .booking-mobile-time-grid > button {
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  .booking-mobile-time-grid + div,
+  .booking-mobile-time-grid ~ .rounded-\[22px\] {
+    display: none;
+  }
+
+  .booking-app-panel[data-step="3"] textarea,
+  .booking-app-panel[data-step="3"] label:has(textarea),
+  .booking-app-panel[data-step="3"] > .mt-5 > .mt-3 {
+    display: none;
+  }
+
+  .booking-app-panel[data-step="3"] .space-y-3 {
+    margin-top: 10px;
+  }
+
+  .booking-app-panel[data-step="3"] .space-y-3 > div {
+    padding: 10px;
+  }
+
+  .booking-app-panel[data-step="3"] label > span:last-child {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .booking-app-panel[data-step="4"] > .mt-5 > div:first-child,
+  .booking-app-panel[data-step="4"] > .mt-5 > p {
+    display: none;
+  }
+
+  .booking-mobile-stage .fixed.inset-x-0.bottom-0 {
+    padding: 0 10px calc(env(safe-area-inset-bottom) + 10px);
+  }
+
+  .booking-mobile-stage .fixed.inset-x-0.bottom-0 > div {
+    max-width: none;
+    padding: 8px;
+    border-radius: 20px;
+  }
+
+  .booking-mobile-payment-summary {
+    margin-bottom: 8px;
+    padding: 8px 10px;
+  }
+
+  .booking-mobile-payment-summary .text-\[0\.82rem\] {
+    font-size: 0.72rem;
+  }
+
+  .booking-mobile-payment-summary .text-\[0\.7rem\] {
+    font-size: 0.62rem;
+  }
+}
+
 main > section:not(:first-of-type) {
   content-visibility: auto;
   contain-intrinsic-size: auto 760px;

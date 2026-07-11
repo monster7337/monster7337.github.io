@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import BookingSuccessClient from "@/components/BookingSuccessClient";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 export default function BookingSuccessPage() {
   return (
     <main className="forest-section min-h-screen py-16" style={{ backgroundImage: "url('/bg/grass1.webp')" }}>

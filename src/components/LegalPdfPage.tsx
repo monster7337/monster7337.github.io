@@ -5,7 +5,7 @@ type LegalPdfPageProps = {
   title: string;
   description: string;
   paragraphs: string[];
-  pdfPath: string;
+  pdfPath?: string;
   returnHref?: string;
   returnLabel?: string;
 };
@@ -49,9 +49,11 @@ export default function LegalPdfPage({
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a className="btn-forest min-h-[48px] px-5" href={pdfPath} target="_blank" rel="noreferrer">
-                Открыть исходный PDF
-              </a>
+              {pdfPath ? (
+                <a className="btn-forest min-h-[48px] px-5" href={pdfPath} target="_blank" rel="noreferrer">
+                  Открыть исходный PDF
+                </a>
+              ) : null}
               <Link className="btn-cream min-h-[48px] px-5" href={returnHref}>
                 {returnLabel}
               </Link>

@@ -592,16 +592,16 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   return (
     <section
       id="booking"
-      className="forest-section scroll-mt-24 py-10 pb-32 sm:py-12 sm:pb-36 lg:py-14 lg:pb-14"
+      className="booking-mobile-stage forest-section scroll-mt-24 py-10 pb-32 sm:py-12 sm:pb-36 lg:py-14 lg:pb-14"
       style={{ backgroundImage: "url('/bg/grass2.webp')" }}
     >
       <div className="forest-overlay bg-[rgba(8,18,11,.72)]" />
 
       <div className="container-x section-content">
         <div className="mx-auto max-w-[1160px]">
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+          <div className="booking-app-layout grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
             <div className="mx-auto w-full max-w-[780px] lg:max-w-none">
-              <div className="forest-card p-4 lg:hidden">
+              <div className="booking-app-overview forest-card p-4 lg:hidden">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Бронирование</div>
@@ -633,7 +633,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap lg:mt-0">
+              <div className="booking-app-step-tabs mt-4 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap lg:mt-0">
                 {bookingSteps.map((item, index) => (
                   <button
                     key={item}
@@ -656,7 +656,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 ))}
               </div>
 
-              <div className="forest-card mt-4 overflow-hidden p-4 sm:p-5 lg:p-6">
+              <div className="booking-app-panel forest-card mt-4 overflow-hidden p-4 sm:p-5 lg:p-6" data-step={step}>
                   <div className="border-b border-[#d6c388]/16 pb-4">
                     <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Шаг {step + 1}</div>
                     <h3 className="mt-2 text-[1.28rem] font-black text-[#f6efdb] sm:text-[1.75rem]">{bookingSteps[step]}</h3>
@@ -664,7 +664,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                   </div>
 
                   {step === 0 ? (
-                    <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
+                    <div className="booking-mobile-ticket-grid mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
                       {BOOKING_TICKETS.map((ticket) => {
                         const quantity = selectedRateQuantities[ticket.id] ?? 0;
                         const infoOpen = activeInfoRateId === ticket.id;
@@ -775,7 +775,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                   ) : null}
 
                   {step === 1 ? (
-                    <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                    <div className="booking-mobile-date-grid mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
                       {dateOptions.map((date) => {
                         const isSelected = selectedDateId === date.id;
                         return (
@@ -800,7 +800,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
                   {step === 2 ? (
                     <div className="mt-5">
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+                      <div className="booking-mobile-time-grid grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
                         {timeSlots.map((slot) => (
                           <button
                             key={slot.time}
@@ -1111,12 +1111,20 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
               <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden">
                 <div className="mx-auto max-w-[780px] rounded-[26px] border border-[#d6c388]/28 bg-[rgba(12,25,15,.96)] p-3 shadow-[0_18px_40px_rgba(0,0,0,.35)] backdrop-blur-xl">
-                  <div className="mb-3 flex items-center justify-between gap-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
+                  <div className="booking-mobile-payment-summary mb-3 flex items-center justify-between gap-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-3 py-2.5">
                     <div>
-                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Сейчас</div>
-                      <div className="mt-1 text-[0.82rem] leading-[1.3] text-[#f6efdb]">{mobileSelectionNote}</div>
+                      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#e8d9b4]">Ваш визит</div>
+                      <div className="mt-1 text-[0.82rem] leading-[1.3] text-[#f6efdb]">
+                        {selectedDate?.dayLabel ?? "Дата не выбрана"} · {selectedTimeLabel} · {totalTicketsCount || 0} бил.
+                      </div>
+                      <div className="mt-1 text-[0.7rem] leading-[1.25] text-[#efe4c8]/72">
+                        Всего {formatCurrency(total)} · на месте {formatCurrency(remainingOnSite)}
+                      </div>
                     </div>
-                    <strong className="shrink-0 text-[1rem] text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
+                    <div className="shrink-0 text-right">
+                      <div className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#e8d9b4]">Предоплата</div>
+                      <strong className="mt-1 block text-[1rem] text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">

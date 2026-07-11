@@ -17,15 +17,16 @@ export default function BookingPageClient() {
   const initialTime = searchParams.get("time") ?? undefined;
 
   return (
-    <main>
+    <main className="booking-mobile-app">
       <Navbar
         homeHrefPrefix="/"
+        bookingMode
         onOpenBooking={() => {
           router.push(buildBookingHref());
         }}
       />
       <section
-        className="forest-section border-b-0 border-t-0 py-10 sm:py-12"
+        className="booking-page-hero forest-section border-b-0 border-t-0 py-10 sm:py-12"
         style={{ backgroundImage: "url('/bg/grass1.webp')" }}
       >
         <div className="forest-overlay bg-[rgba(7,17,10,.66)]" />

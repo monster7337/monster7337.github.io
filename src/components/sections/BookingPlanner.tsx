@@ -721,7 +721,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             </p>
 
                             {infoOpen ? (
-                              <div className="mt-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(8,18,11,.3)] px-3 py-2.5 text-[0.7rem] leading-[1.35] text-[#efe4c8]/82 sm:px-3.5 sm:py-3 sm:text-[0.78rem] sm:leading-[1.45]">
+                              <div className="booking-ticket-details mt-3 rounded-[18px] border border-[#d6c388]/18 bg-[rgba(8,18,11,.3)] px-3 py-2.5 text-[0.7rem] leading-[1.35] text-[#efe4c8]/82 sm:px-3.5 sm:py-3 sm:text-[0.78rem] sm:leading-[1.45]">
                                 {ticket.details}
                               </div>
                             ) : null}

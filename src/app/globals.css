@@ -260,27 +260,76 @@ body {
 
   .booking-mobile-ticket-grid {
     align-content: start;
+    grid-auto-rows: minmax(0, 1fr);
     gap: 8px;
   }
 
   .booking-mobile-ticket-grid > article {
     min-height: 0;
-    padding: 10px;
+    padding: 8px;
   }
 
-  .booking-mobile-ticket-grid > article p,
-  .booking-mobile-ticket-grid > article > div:first-child button,
-  .booking-mobile-ticket-grid > article > span,
-  .booking-mobile-ticket-grid > article > div:nth-of-type(2) {
-    display: none;
+  .booking-mobile-ticket-grid > article > div:first-child {
+    gap: 6px;
+  }
+
+  .booking-mobile-ticket-grid > article > div:first-child button {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+  }
+
+  .booking-mobile-ticket-grid > article > span {
+    margin-top: 4px;
+    padding: 3px 5px;
+    font-size: 0.48rem;
+    line-height: 1.15;
   }
 
   .booking-mobile-ticket-grid > article h4 {
     margin-top: 4px;
+    font-size: 0.74rem;
+    line-height: 1.08;
+  }
+
+  .booking-mobile-ticket-grid > article p {
+    display: -webkit-box;
+    margin-top: 4px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-size: 0.6rem;
+    line-height: 1.25;
   }
 
   .booking-mobile-ticket-grid > article > div:last-child {
-    padding-top: 8px;
+    padding-top: 6px;
+  }
+
+  .booking-mobile-ticket-grid > article > div:last-child > button {
+    min-height: 34px;
+    font-size: 0.66rem;
+  }
+
+  .booking-mobile-ticket-grid > article > div:last-child > div {
+    padding: 7px;
+  }
+
+  .booking-mobile-ticket-grid > article > div:last-child > div > div {
+    margin-top: 5px;
+  }
+
+  .booking-mobile-ticket-grid > article > div:last-child > div button {
+    width: 28px;
+    height: 28px;
+  }
+
+  .booking-mobile-ticket-grid > article > div:last-child > div strong {
+    font-size: 0.76rem;
+  }
+
+  .booking-app-panel:has(.booking-ticket-details) {
+    overflow-y: auto;
   }
 
   .booking-mobile-date-grid {

@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import AmbientEffects from "@/components/AmbientEffects";
 import BookingRulesGate from "@/components/BookingRulesGate";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
@@ -29,9 +29,15 @@ export const metadata: Metadata = {
     siteName: 'Антикафе "В Ёлках"',
     title: 'Антикафе "В Ёлках" — минипиги и белки в СПб',
     description: "Встречи с ручными минипигами и белками в центре Санкт-Петербурга.",
-    images: [{ url: absoluteUrl("/bg/hero.webp"), width: 1600, height: 900, alt: 'Антикафе "В Ёлках"' }]
+    images: [{ url: absoluteUrl("/bg/og-cover.jpg"), width: 1200, height: 630, alt: 'Антикафе "В Ёлках"' }]
   },
-  twitter: { card: "summary_large_image", title: 'Антикафе "В Ёлках"', description: "Минипиги и белки в самом центре СПб.", images: [absoluteUrl("/bg/hero.webp")] }
+  twitter: { card: "summary_large_image", title: 'Антикафе "В Ёлках"', description: "Минипиги и белки в самом центре СПб.", images: [absoluteUrl("/bg/og-cover.jpg")] },
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/logo/logo.webp", apple: "/logo/logo.webp" }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b170f",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -57,6 +63,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru">
       <body>
+        <div className="site-load-progress" aria-hidden="true">
+          <span />
+        </div>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
         <AmbientEffects />
         <BookingRulesGate />

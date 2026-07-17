@@ -10,13 +10,15 @@ export default function Hero({ onOpenBooking }: HeroProps) {
   return (
     <section className="forest-section min-h-[100svh] border-t-0 sm:min-h-[calc(100svh-80px)]">
       <div className="absolute inset-0 overflow-hidden">
-        <picture>
-          <source media="(min-width: 640px)" srcSet="/bg/hero.webp" />
+        <picture className="block h-full w-full">
+          <source media="(min-width: 640px)" srcSet="/bg/hero.avif" type="image/avif" />
+          <source media="(min-width: 640px)" srcSet="/bg/hero.webp" type="image/webp" />
+          <source srcSet="/bg/heromobile.avif" type="image/avif" />
           <img
             src="/bg/heromobile.webp"
             alt='Антикафе "В Ёлках"'
-            width={1600}
-            height={900}
+            width={941}
+            height={1672}
             fetchPriority="high"
             decoding="async"
             className="h-full w-full object-cover object-[50%_12%] sm:-translate-x-[1%] sm:-translate-y-[2%] sm:scale-[1.08] sm:object-[52%_50%]"

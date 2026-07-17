@@ -42,7 +42,10 @@ const galleryItems = [
   { src: getOptimizedGallerySrc("/gallery/IMG_4783.jpeg"), alt: "Фото антикафе В Ёлках 26", width: 4032, height: 3024 },
 ];
 
-const previewItems = galleryItems.slice(0, 6);
+const previewItems = galleryItems.slice(0, 6).map((item) => ({
+  ...item,
+  previewSrc: item.src.replace("/gallery/optimized/", "/gallery/optimized/thumb/"),
+}));
 const galleryImageUrls = galleryItems.map((item) => item.src);
 
 export default function Gallery({ onOpenBooking }: GalleryProps) {
@@ -103,11 +106,10 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
                   >
                     <div className="relative aspect-square">
                       <Image
-                        src={item.src}
+                        src={item.previewSrc}
                         alt={item.alt}
                         fill
-                        priority={idx < 2}
-                        unoptimized
+                        loading="lazy"
                         placeholder="blur"
                         blurDataURL={galleryImageBlurDataUrl}
                         sizes="(min-width: 640px) 30vw, 50vw"

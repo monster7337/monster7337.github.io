@@ -7,13 +7,16 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
   allowedDevOrigins: ["192.168.0.5"],
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2678400,
+    qualities: [75],
+    ...(isStaticExport ? { unoptimized: true } : {}),
+  },
   ...(isStaticExport
     ? {
         output: "export",
         trailingSlash: true,
-        images: {
-          unoptimized: true,
-        },
       }
     : {}),
   env: {

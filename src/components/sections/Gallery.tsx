@@ -252,7 +252,6 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
                   src={activeItem.src}
                   alt={activeItem.alt}
                   fill
-                  unoptimized
                   priority
                   placeholder="blur"
                   blurDataURL={galleryImageBlurDataUrl}

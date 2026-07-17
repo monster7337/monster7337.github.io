@@ -384,7 +384,7 @@ function SpeciesCard({
           src={group.coverImage}
           alt={group.coverAlt}
           fill
-          unoptimized
+          loading="lazy"
           sizes="(max-width: 767px) 100vw, 50vw"
           className="object-cover transition duration-700 group-hover:scale-[1.04]"
         />
@@ -568,7 +568,7 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
                             src={animal.image}
                             alt={animal.imageAlt}
                             fill
-                            unoptimized
+                            loading="lazy"
                             sizes="(max-width: 640px) 50vw, 25vw"
                             className="object-cover transition duration-500 group-hover:scale-[1.03]"
                             style={animal.imagePosition ? { objectPosition: animal.imagePosition } : undefined}
@@ -615,7 +615,6 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
                     src={activeAnimal.image}
                     alt={activeAnimal.imageAlt}
                     fill
-                    unoptimized
                     priority
                     sizes="(min-width: 1024px) 54vw, 100vw"
                     className="object-cover"

@@ -66,6 +66,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="site-load-progress" aria-hidden="true">
           <span />
         </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(()=>{const r=document.documentElement,d=()=>r.classList.add("site-ready");document.readyState==="complete"?requestAnimationFrame(d):addEventListener("load",d,{once:true});setTimeout(d,8000)})()'
+          }}
+        />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
         <AmbientEffects />
         <BookingRulesGate />

@@ -503,7 +503,7 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
 
   return (
     <>
-      <section id="animals" className="forest-section py-12 sm:py-14" style={{ backgroundImage: "url('/bg/grass1.webp')" }}>
+      <section id="animals" className="forest-section lazy-bg-grass-1 py-12 sm:py-14" data-lazy-background>
         <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 
         <div className="container-x section-content">

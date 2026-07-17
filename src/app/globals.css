@@ -91,6 +91,18 @@ body {
     @apply relative overflow-hidden border-y border-[#a48c4b]/55 bg-cover bg-center bg-no-repeat;
   }
 
+  .lazy-background-ready.lazy-bg-grass-1 {
+    background-image: url('/bg/grass1.webp');
+  }
+
+  .lazy-background-ready.lazy-bg-grass-2 {
+    background-image: url('/bg/grass2.webp');
+  }
+
+  .lazy-background-ready.lazy-bg-grass-3 {
+    background-image: url('/bg/grass3.webp');
+  }
+
   .forest-overlay {
     @apply absolute inset-0 bg-[rgba(6,16,10,.58)];
   }

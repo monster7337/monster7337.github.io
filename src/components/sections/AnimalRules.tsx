@@ -28,8 +28,8 @@ export default function AnimalRules() {
   return (
     <section
       id="rules"
-      className="forest-section py-12 sm:py-14"
-      style={{ backgroundImage: "url('/bg/grass2.webp')" }}
+      className="forest-section lazy-bg-grass-2 py-12 sm:py-14"
+      data-lazy-background
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.64)]" />
 

@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import { requestBookingGate } from "@/components/BookingRulesGate";
 import type { BookingTicketId } from "@/lib/bookingCatalog";
 import { buildBookingHref } from "@/lib/bookingHref";
+import LazySectionBackgrounds from "@/components/LazySectionBackgrounds";
 
 export default function HomePageClient() {
   const openBooking = (nextDefaults?: { ticketId?: BookingTicketId; dateId?: string; time?: string }) => {
@@ -24,6 +25,7 @@ export default function HomePageClient() {
 
   return (
     <main>
+      <LazySectionBackgrounds />
       <Navbar onOpenBooking={() => openBooking()} />
       <Hero onOpenBooking={() => openBooking()} />
       <About />

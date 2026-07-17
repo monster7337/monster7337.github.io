@@ -106,7 +106,7 @@ export default function Reviews() {
   const reveal = useScrollRevealMotion({ amount: 0.22, desktopDelayStep: 0.06, desktopDistance: 10 });
 
   return (
-    <section className="forest-section py-12 sm:py-14" style={{ backgroundImage: "url('/bg/grass2.webp')" }}>
+    <section className="forest-section lazy-bg-grass-2 py-12 sm:py-14" data-lazy-background>
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 
       <div className="container-x section-content">
@@ -127,7 +127,7 @@ export default function Reviews() {
               </div>
               <div className="rounded-[20px] border border-[rgba(223,204,150,.25)] bg-[rgba(244,232,197,.08)] px-3 py-2 text-center shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
                 <div className="text-[1.65rem] font-black leading-none text-[#f8f0db]">5.0</div>
-                <div className="mt-1 flex items-center justify-center gap-0.5 text-[#c69226]" aria-label="Рейтинг 5.0 из 5">
+                <div className="mt-1 flex items-center justify-center gap-0.5 text-[#c69226]" role="img" aria-label="Рейтинг 5.0 из 5">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <Star key={index} size={13} fill="currentColor" />
                   ))}
@@ -185,7 +185,7 @@ export default function Reviews() {
                   >
                     {review.platform}
                   </span>
-                  <div className="flex items-center gap-0.5 text-[#f1c860]" aria-label={`Рейтинг ${review.rating} из 5`}>
+                  <div className="flex items-center gap-0.5 text-[#f1c860]" role="img" aria-label={`Рейтинг ${review.rating} из 5`}>
                     {Array.from({ length: review.rating }).map((_, starIndex) => (
                       <Star key={starIndex} size={13} fill="currentColor" />
                     ))}

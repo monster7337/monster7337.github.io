@@ -102,7 +102,7 @@ export default function VisitFlow() {
   }, []);
 
   return (
-    <section id="visit-flow" className="forest-section py-12 sm:py-16" style={{ backgroundImage: "url('/bg/grass1.webp')" }}>
+    <section id="visit-flow" className="forest-section lazy-bg-grass-1 py-12 sm:py-16" data-lazy-background>
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 
       <div className="container-x section-content">

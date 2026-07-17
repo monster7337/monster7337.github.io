@@ -6,6 +6,9 @@ const siteUrl = isStaticExport ? "https://monster7337.github.io" : "https://Ð²-Ð
 const nextConfig: NextConfig = {
   reactCompiler: true,
   poweredByHeader: false,
+  experimental: {
+    inlineCss: true,
+  },
   allowedDevOrigins: ["192.168.0.5"],
   images: {
     formats: ["image/avif", "image/webp"],

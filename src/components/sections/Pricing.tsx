@@ -30,8 +30,8 @@ export default function Pricing({ onOpenBooking }: PricingProps) {
   return (
     <section
       id="pricing"
-      className="forest-section py-14 sm:py-16"
-      style={{ backgroundImage: "url('/bg/grass1.webp')" }}
+      className="forest-section lazy-bg-grass-1 py-14 sm:py-16"
+      data-lazy-background
     >
       <div className="forest-overlay bg-[rgba(8,18,11,.6)]" />
 

@@ -13,8 +13,8 @@ export default function Contacts() {
   return (
     <section
       id="contacts"
-      className="forest-section border-b-0 py-10 sm:py-12"
-      style={{ backgroundImage: "url('/bg/grass3.webp')" }}
+      className="forest-section lazy-bg-grass-3 border-b-0 py-10 sm:py-12"
+      data-lazy-background
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 

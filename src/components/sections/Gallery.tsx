@@ -82,7 +82,7 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
 
   return (
     <>
-      <section id="gallery" className="forest-section py-14 sm:py-16" style={{ backgroundImage: "url('/bg/grass2.webp')" }}>
+      <section id="gallery" className="forest-section lazy-bg-grass-2 py-14 sm:py-16" data-lazy-background>
         <div className="forest-overlay bg-[rgba(8,18,11,.58)]" />
 
         <div className="container-x section-content">

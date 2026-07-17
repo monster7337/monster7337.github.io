@@ -35,8 +35,8 @@ export default function About() {
   return (
     <section
       id="about"
-      className="forest-section border-b-0 py-12 sm:py-16"
-      style={{ backgroundImage: "url('/bg/grass1.webp')" }}
+      className="forest-section lazy-bg-grass-1 border-b-0 py-12 sm:py-16"
+      data-lazy-background
     >
       <div className="forest-overlay bg-[rgba(7,17,10,.58)]" />
 

@@ -1,12 +1,7 @@
-"use client";
-
 import { ArrowRight, BadgePercent, Clock3, Gift, Leaf, MapPin, ShieldCheck, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { BOOKING_TICKETS, BOOKING_CONTACTS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
-
-type PricingProps = {
-  onOpenBooking: (defaults?: { ticketId?: BookingTicketId; dateId?: string; time?: string }) => void;
-};
+import BookingGateButton from "@/components/BookingGateButton";
 
 const ticketIcons: Record<BookingTicketId, typeof Star> = {
   social: Leaf,
@@ -22,7 +17,7 @@ const noteIcons: Record<BookingTicketId, typeof BadgePercent> = {
   standard: BadgePercent,
 };
 
-export default function Pricing({ onOpenBooking }: PricingProps) {
+export default function Pricing() {
   return (
     <section
       id="pricing"
@@ -111,16 +106,16 @@ export default function Pricing({ onOpenBooking }: PricingProps) {
                 ) : null}
 
                 <div className="mt-4 sm:mt-5">
-                  <button
+                  <BookingGateButton
                     className="flex min-h-[40px] w-full items-center justify-between rounded-[14px] border border-[#c3d95d]/55 bg-[linear-gradient(180deg,#95c548_0%,#6c9f27_100%)] px-3 py-2 text-[0.78rem] font-black text-[#f7f1dc] shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_12px_26px_rgba(56,83,22,.32)] transition hover:brightness-105 sm:min-h-[54px] sm:px-5 sm:text-[1rem]"
-                    onClick={() => onOpenBooking({ ticketId: plan.id })}
+                    defaults={{ ticketId: plan.id }}
                   >
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#dced9c]/35 bg-[rgba(255,255,255,.08)] text-[#f6efdb] sm:h-9 sm:w-9">
                       <Leaf size={14} />
                     </span>
                     <span>Выбрать</span>
                     <ArrowRight size={16} />
-                  </button>
+                  </BookingGateButton>
                 </div>
               </article>
             );

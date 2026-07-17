@@ -1,5 +1,5 @@
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "https://monster7337.github.io";
+const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "https://xn----8sbenzf6e.xn--p1ai";
 
 function isExternalPath(path) {
   return /^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith("tel:") || path.startsWith("mailto:");

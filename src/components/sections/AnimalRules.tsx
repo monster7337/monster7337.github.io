@@ -1,5 +1,3 @@
-"use client";
-
 import { AlertTriangle, CircleCheck, Shirt, Sparkles } from "lucide-react";
 
 const allowed = [

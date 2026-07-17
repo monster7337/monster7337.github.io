@@ -1,5 +1,3 @@
-"use client";
-
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
@@ -13,28 +11,21 @@ import Reviews from "@/components/sections/Reviews";
 import Contacts from "@/components/sections/Contacts";
 import FAQ from "@/components/sections/FAQ";
 import Footer from "@/components/Footer";
-import { requestBookingGate } from "@/components/BookingRulesGate";
-import type { BookingTicketId } from "@/lib/bookingCatalog";
-import { buildBookingHref } from "@/lib/bookingHref";
 import LazySectionBackgrounds from "@/components/LazySectionBackgrounds";
 
 export default function HomePageClient() {
-  const openBooking = (nextDefaults?: { ticketId?: BookingTicketId; dateId?: string; time?: string }) => {
-    requestBookingGate(buildBookingHref(nextDefaults));
-  };
-
   return (
     <main>
       <LazySectionBackgrounds />
-      <Navbar onOpenBooking={() => openBooking()} />
-      <Hero onOpenBooking={() => openBooking()} />
+      <Navbar />
+      <Hero />
       <About />
       <Differences />
-      <Pricing onOpenBooking={openBooking} />
-      <Animals onOpenBooking={() => openBooking()} />
+      <Pricing />
+      <Animals />
       <VisitFlow />
       <AnimalRules />
-      <Gallery onOpenBooking={() => openBooking()} />
+      <Gallery />
       <Reviews />
       <Contacts />
       <FAQ />

@@ -5,9 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Menu, Phone, X } from "lucide-react";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
+import { requestBookingGate } from "@/components/BookingRulesGate";
 
 type NavbarProps = {
-  onOpenBooking: () => void;
+  onOpenBooking?: () => void;
   homeHrefPrefix?: string;
   bookingMode?: boolean;
 };
@@ -22,6 +23,7 @@ const navSections = [
 
 export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const openBooking = onOpenBooking ?? (() => requestBookingGate());
 
   const navLinks = [
     ...navSections.map((item) => ({
@@ -57,7 +59,7 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode
 
   const handleBooking = () => {
     closeMenu();
-    onOpenBooking();
+    openBooking();
   };
 
   return (
@@ -81,7 +83,7 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode
               ))}
             </nav>
 
-            <button onClick={onOpenBooking} className="btn-forest px-6 py-3 text-[0.95rem]">
+            <button onClick={openBooking} className="btn-forest px-6 py-3 text-[0.95rem]">
               Записаться
             </button>
           </div>

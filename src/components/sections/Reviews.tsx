@@ -1,5 +1,3 @@
-"use client";
-
 import { Award, Star } from "lucide-react";
 
 const reviewPlatforms = [

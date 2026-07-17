@@ -1,6 +1,5 @@
-"use client";
+/* eslint-disable @next/next/no-img-element */
 
-import Image from "next/image";
 import { CalendarDays, Camera, Coffee, Leaf, Squirrel, Users } from "lucide-react";
 
 const badges = [
@@ -84,14 +83,25 @@ export default function About() {
           <div className="relative">
             <div className="relative overflow-hidden rounded-[30px] border border-[#d7c37e]/42 bg-[rgba(16,28,15,.45)] shadow-[0_24px_48px_rgba(0,0,0,.28)]">
               <div className="relative aspect-[1.02/1] sm:aspect-[1.14/1]">
-                <Image
-                  src="/bg/aboutus.webp"
+                <img
+                  src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                  data-deferred-src="/bg/aboutus-760.avif"
                   alt="Интерьер антикафе В Ёлках"
-                  fill
-                  loading="lazy"
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="object-cover"
+                  width={760}
+                  height={570}
+                  decoding="async"
+                  fetchPriority="low"
+                  className="h-full w-full object-cover"
                 />
+                <noscript>
+                  <img
+                    src="/bg/aboutus-760.avif"
+                    alt="Интерьер антикафе В Ёлках"
+                    width="760"
+                    height="570"
+                    className="h-full w-full object-cover"
+                  />
+                </noscript>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const isStaticExport = process.env.STATIC_EXPORT === "true";
-const siteUrl = isStaticExport ? "https://monster7337.github.io" : "https://в-елках.рф";
+const siteUrl = "https://xn----8sbenzf6e.xn--p1ai";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,

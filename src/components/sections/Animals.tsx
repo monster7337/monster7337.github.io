@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, Heart, LayoutGrid, Sparkles, X } f
 import Image from "next/image";
 import { useModalImagePreload } from "@/lib/useModalImagePreload";
 import { useModalViewportLock } from "@/lib/useModalViewportLock";
+import { requestBookingGate } from "@/components/BookingRulesGate";
 
 type AnimalsProps = {
   onOpenBooking?: () => void;
@@ -418,7 +419,7 @@ function SpeciesCard({
   );
 }
 
-export default function Animals({ onOpenBooking }: AnimalsProps) {
+export default function Animals({ onOpenBooking = () => requestBookingGate() }: AnimalsProps) {
   const [activeSpecies, setActiveSpecies] = useState<SpeciesId | null>(null);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
 
@@ -585,12 +586,10 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
                       <LayoutGrid size={16} />
                       {activeAnimals.length} карточек в этом разделе
                     </div>
-                    {onOpenBooking ? (
-                      <button type="button" className="btn-forest min-h-[44px] px-4" onClick={openBookingFromModal}>
-                        <CalendarDays size={18} />
-                        <span className="ml-2">Записаться</span>
-                      </button>
-                    ) : null}
+                    <button type="button" className="btn-forest min-h-[44px] px-4" onClick={openBookingFromModal}>
+                      <CalendarDays size={18} />
+                      <span className="ml-2">Записаться</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -699,12 +698,10 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
                       </button>
                     </div>
 
-                    {onOpenBooking ? (
-                      <button type="button" className="btn-forest mt-2 min-h-[46px] w-full sm:mt-3" onClick={openBookingFromModal}>
-                        <CalendarDays size={18} />
-                        Записаться на визит
-                      </button>
-                    ) : null}
+                    <button type="button" className="btn-forest mt-2 min-h-[46px] w-full sm:mt-3" onClick={openBookingFromModal}>
+                      <CalendarDays size={18} />
+                      Записаться на визит
+                    </button>
                   </div>
                 </div>
               </div>

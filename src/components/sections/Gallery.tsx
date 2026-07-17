@@ -6,9 +6,10 @@ import Image from "next/image";
 import { galleryImageBlurDataUrl, getOptimizedGallerySrc } from "@/lib/galleryAssets";
 import { useModalImagePreload } from "@/lib/useModalImagePreload";
 import { useModalViewportLock } from "@/lib/useModalViewportLock";
+import { requestBookingGate } from "@/components/BookingRulesGate";
 
 type GalleryProps = {
-  onOpenBooking: () => void;
+  onOpenBooking?: () => void;
 };
 
 const galleryItems = [
@@ -46,7 +47,7 @@ const previewItems = galleryItems.slice(0, 6).map((item) => ({
 }));
 const galleryImageUrls = galleryItems.map((item) => item.src);
 
-export default function Gallery({ onOpenBooking }: GalleryProps) {
+export default function Gallery({ onOpenBooking = () => requestBookingGate() }: GalleryProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const activeItem = activeIndex !== null ? galleryItems[activeIndex] : null;
 

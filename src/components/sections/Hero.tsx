@@ -1,10 +1,6 @@
-"use client";
+import BookingGateButton from "@/components/BookingGateButton";
 
-type HeroProps = {
-  onOpenBooking: () => void;
-};
-
-export default function Hero({ onOpenBooking }: HeroProps) {
+export default function Hero() {
   return (
     <section className="forest-section min-h-[100svh] border-t-0 sm:min-h-[calc(100svh-80px)]">
       <div className="absolute inset-0 overflow-hidden">
@@ -44,9 +40,9 @@ export default function Hero({ onOpenBooking }: HeroProps) {
             </p>
 
             <div className="mt-3 grid gap-2 sm:mt-5 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
-              <button className="btn-forest min-h-9 w-full px-4 text-[0.92rem] sm:min-h-10 sm:min-w-36 sm:w-auto sm:text-sm" onClick={onOpenBooking}>
+              <BookingGateButton className="btn-forest min-h-9 w-full px-4 text-[0.92rem] sm:min-h-10 sm:min-w-36 sm:w-auto sm:text-sm">
                 Онлайн-запись
-              </button>
+              </BookingGateButton>
               <a className="btn-cream min-h-9 w-full px-4 text-[0.92rem] sm:min-h-10 sm:min-w-36 sm:w-auto sm:text-sm" href="#about">
                 Узнать больше
               </a>

@@ -1,5 +1,3 @@
-"use client";
-
 import { Clock3, HeartHandshake, Sparkles, Stars, PartyPopper, Heart } from "lucide-react";
 
 const differences = [

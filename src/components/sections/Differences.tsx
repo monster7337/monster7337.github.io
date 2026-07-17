@@ -1,8 +1,6 @@
 "use client";
 
 import { Clock3, HeartHandshake, Sparkles, Stars, PartyPopper, Heart } from "lucide-react";
-import { motion } from "framer-motion";
-import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 
 const differences = [
   {
@@ -51,8 +49,6 @@ const occasions = [
 ];
 
 export default function Differences() {
-  const reveal = useScrollRevealMotion({ amount: 0.16, desktopDelayStep: 0.07, desktopDistance: 12 });
-
   return (
     <section
       id="differences"
@@ -62,7 +58,7 @@ export default function Differences() {
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
 
       <div className="container-x section-content">
-        <motion.div {...reveal(0)} className="mx-auto max-w-[760px] text-center">
+        <div className="mx-auto max-w-[760px] text-center">
           <div className="inline-flex rounded-full border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] px-4 py-2 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-[#e7d8b1]">
             О нас
           </div>
@@ -73,11 +69,11 @@ export default function Differences() {
             Для нас важны не только впечатления гостей, но и профессиональный уход, режим отдыха животных и санитарный
             контроль пространства.
           </p>
-        </motion.div>
+        </div>
 
         <div className="mt-6 grid gap-3 sm:mt-8 md:grid-cols-3 md:gap-5">
-          {differences.map((item, index) => (
-            <motion.article key={item.title} {...reveal(index + 1)} className="glass-leaf-card rounded-[26px] p-4 sm:p-6">
+          {differences.map((item) => (
+            <article key={item.title} className="glass-leaf-card rounded-[26px] p-4 sm:p-6">
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#dbc788]/34 bg-[rgba(255,255,255,.05)] text-[#e0c973]">
                 <item.icon size={26} />
               </div>
@@ -86,11 +82,11 @@ export default function Differences() {
                 <span className="sm:hidden">{item.mobileDescription}</span>
                 <span className="hidden sm:inline">{item.description}</span>
               </p>
-            </motion.article>
+            </article>
           ))}
         </div>
 
-        <motion.div {...reveal(4)} className="mx-auto mt-10 max-w-[760px] text-center sm:mt-12">
+        <div className="mx-auto mt-10 max-w-[760px] text-center sm:mt-12">
           <div className="inline-flex rounded-full border border-[#d6c388]/22 bg-[rgba(255,255,255,.05)] px-4 py-2 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-[#e7d8b1]">
             Форматы визита
           </div>
@@ -101,11 +97,11 @@ export default function Differences() {
             К нам приходят не только ради знакомства с животными, но и ради встреч, необычных вечеров и спокойных
             праздников.
           </p>
-        </motion.div>
+        </div>
 
         <div className="mt-6 grid gap-3 sm:mt-8 md:grid-cols-3 md:gap-5">
-          {occasions.map((item, index) => (
-            <motion.article key={item.title} {...reveal(index + 5)} className="glass-leaf-card rounded-[26px] p-4 sm:p-6">
+          {occasions.map((item) => (
+            <article key={item.title} className="glass-leaf-card rounded-[26px] p-4 sm:p-6">
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#dbc788]/34 bg-[rgba(255,255,255,.05)] text-[#e0c973]">
                 <item.icon size={26} />
               </div>
@@ -114,7 +110,7 @@ export default function Differences() {
                 <span className="sm:hidden">{item.mobileDescription}</span>
                 <span className="hidden sm:inline">{item.description}</span>
               </p>
-            </motion.article>
+            </article>
           ))}
         </div>
       </div>

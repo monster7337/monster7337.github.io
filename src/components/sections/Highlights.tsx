@@ -1,6 +1,5 @@
 ﻿"use client";
 
-import { motion } from "framer-motion";
 
 const items = [
   { k: "01", t: "Лесной интерьер", d: "Зелёные градиенты, тёплые материалы, мягкий свет." },
@@ -26,15 +25,14 @@ export default function Highlights() {
 
         <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-4 gap-3">
           {items.map((x) => (
-            <motion.div
+            <div
               key={x.k}
-              whileHover={{ y: -3 }}
               className="rounded-xl2 border border-white/10 bg-white/5 p-5"
             >
               <div className="text-gold-500 font-extrabold">{x.k}</div>
               <div className="mt-2 font-bold">{x.t}</div>
               <div className="mt-1 text-sm muted">{x.d}</div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

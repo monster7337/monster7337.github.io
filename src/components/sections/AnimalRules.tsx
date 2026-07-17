@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertTriangle, CircleCheck, Shirt, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 
 const allowed = [
   "Кормить животных предоставляемым антикафе кормом",
@@ -41,7 +40,7 @@ export default function AnimalRules() {
         </p>
 
         <div className="mt-5 grid gap-3 md:mt-6 md:gap-4 lg:grid-cols-2">
-          <motion.div whileHover={{ y: -2 }} className="glass-leaf-card p-4 sm:p-5">
+          <div className="glass-leaf-card p-4 sm:p-5">
             <div className="flex items-center gap-2 text-[#f7efdc]">
               <CircleCheck size={19} className="text-[#b8dc7a]" />
               <h3 className="text-[1rem] font-bold sm:text-lg">У нас можно</h3>
@@ -56,9 +55,9 @@ export default function AnimalRules() {
                 </li>
               ))}
             </ol>
-          </motion.div>
+          </div>
 
-          <motion.div whileHover={{ y: -2 }} className="glass-leaf-card p-4 sm:p-5">
+          <div className="glass-leaf-card p-4 sm:p-5">
             <div className="flex items-center gap-2 text-[#f7efdc]">
               <AlertTriangle size={19} className="text-[#f1b56c]" />
               <h3 className="text-[1rem] font-bold sm:text-lg">У нас нельзя</h3>
@@ -73,10 +72,10 @@ export default function AnimalRules() {
                 </li>
               ))}
             </ol>
-          </motion.div>
+          </div>
         </div>
 
-        <motion.div whileHover={{ y: -2 }} className="forest-card mt-4 overflow-hidden border-[#d9c891]/70 bg-[linear-gradient(135deg,rgba(27,62,37,.78),rgba(108,80,34,.58))] p-4 sm:p-5">
+        <div className="forest-card mt-4 overflow-hidden border-[#d9c891]/70 bg-[linear-gradient(135deg,rgba(27,62,37,.78),rgba(108,80,34,.58))] p-4 sm:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-[#f7efdc]">
@@ -104,7 +103,7 @@ export default function AnimalRules() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

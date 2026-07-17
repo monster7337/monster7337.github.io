@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CalendarDays, Camera, Clock3, Heart, ShieldCheck, Sparkles, Users, X } from "lucide-react";
 import Image from "next/image";
 import { galleryImageBlurDataUrl, getOptimizedGallerySrc } from "@/lib/galleryAssets";
-import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 import { useModalImagePreload } from "@/lib/useModalImagePreload";
 import { useModalViewportLock } from "@/lib/useModalViewportLock";
 
@@ -50,7 +48,6 @@ const galleryImageUrls = galleryItems.map((item) => item.src);
 
 export default function Gallery({ onOpenBooking }: GalleryProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const reveal = useScrollRevealMotion({ amount: 0.2, desktopDelayStep: 0.08, desktopDistance: 10 });
   const activeItem = activeIndex !== null ? galleryItems[activeIndex] : null;
 
   const closeLightbox = () => setActiveIndex(null);
@@ -95,11 +92,9 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
             <div className="lg:col-span-9">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {previewItems.map((item, idx) => (
-                  <motion.button
+                  <button
                     key={item.src}
                     type="button"
-                    {...reveal(idx)}
-                    whileHover={{ y: -4, scale: 1.01 }}
                     className="group relative block overflow-hidden rounded-[22px] border border-[#dac792]/58 bg-[rgba(14,31,19,.58)] text-left shadow-[0_8px_22px_rgba(0,0,0,.28)]"
                     onClick={() => openBySrc(item.src)}
                     aria-label={`Открыть ${item.alt}`}
@@ -122,7 +117,7 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
                         <span className="text-xs font-semibold text-[#f6edd7]">Смотреть</span>
                       </span>
                     </div>
-                  </motion.button>
+                  </button>
                 ))}
               </div>
 
@@ -139,16 +134,13 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
                 Откройте запись и выберите удобный день, время и формат визита.
               </p>
 
-              <motion.button
+              <button
                 type="button"
                 onClick={onOpenBooking}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.985 }}
-                transition={{ duration: 0.18 }}
                 className="btn-forest mt-4 min-h-[46px] w-full"
               >
                 Записаться
-              </motion.button>
+              </button>
 
               <div className="mt-4 rounded-[24px] border border-[#b69b44]/40 bg-[linear-gradient(180deg,rgba(28,52,20,.9)_0%,rgba(17,33,13,.96)_100%)] p-3 shadow-[0_16px_34px_rgba(0,0,0,.22)]">
                 <div className="flex items-center gap-2 text-[0.92rem] font-bold text-[#d8e38f]">
@@ -211,21 +203,13 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
         </div>
       </section>
 
-      <AnimatePresence>
-        {activeItem ? (
-          <motion.div
+      {activeItem ? (
+          <div
             className="fixed inset-0 z-[90] bg-[rgba(3,8,6,.96)] backdrop-blur-[10px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={closeLightbox}
           >
-            <motion.div
+            <div
               className="relative h-full w-full"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.18 }}
               onClick={(event) => event.stopPropagation()}
             >
               <button
@@ -268,10 +252,9 @@ export default function Gallery({ onOpenBooking }: GalleryProps) {
               >
                 <ArrowRight size={18} />
               </button>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+            </div>
+          </div>
+      ) : null}
     </>
   );
 }

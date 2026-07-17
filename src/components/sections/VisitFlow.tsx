@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import clsx from "clsx";
 import { ArrowUpRight, BadgeCheck, CalendarDays, HeartHandshake, Sparkles } from "lucide-react";
-import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 
 const steps = [
   {
@@ -36,7 +34,6 @@ const steps = [
 export default function VisitFlow() {
   const [activeStep, setActiveStep] = useState(0);
   const progress = useMemo(() => ((activeStep + 1) / steps.length) * 100, [activeStep]);
-  const reveal = useScrollRevealMotion({ amount: 0.18, desktopDelayStep: 0.08, desktopDistance: 10 });
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
@@ -115,8 +112,7 @@ export default function VisitFlow() {
         </div>
 
         <div className="mt-6 flex flex-col gap-4 sm:mt-7 sm:gap-5">
-          <motion.div
-            layout
+          <div
             className="relative grid overflow-hidden rounded-2xl border border-[#d9c891]/45 bg-[linear-gradient(135deg,rgba(17,43,22,.88),rgba(8,22,13,.84))] p-4 shadow-[0_18px_46px_rgba(0,0,0,.34)] backdrop-blur-md md:grid-cols-[minmax(0,1.25fr)_minmax(260px,.75fr)] md:gap-6 md:p-7"
           >
             <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#a6cf70]/18 blur-2xl" />
@@ -128,13 +124,12 @@ export default function VisitFlow() {
               </span>
               <div className="grid">
                 {steps.map((step, index) => (
-                  <motion.div
+                  <div
                     key={step.title}
                     className={clsx(
                       "col-start-1 row-start-1 flex flex-col gap-1.5 transition sm:gap-2",
                       index === activeStep ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
                     )}
-                    animate={{ y: index === activeStep ? 0 : 6 }}
                     aria-hidden={index !== activeStep}
                   >
                     <h3 className="text-[1.35rem] font-black leading-[1.05] text-[#f7efdc] sm:text-[2.35rem]">{step.title}</h3>
@@ -142,7 +137,7 @@ export default function VisitFlow() {
                       <span className="sm:hidden">{step.mobileText}</span>
                       <span className="hidden sm:inline">{step.text}</span>
                     </p>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -155,14 +150,13 @@ export default function VisitFlow() {
                 <span className="text-[0.78rem] font-bold text-[#e8d9b4]/86 sm:text-sm">пути открыто</span>
               </div>
               <div className="h-3 overflow-hidden rounded-full border border-[#d9c891]/20 bg-[rgba(239,228,200,.18)] shadow-[inset_0_1px_2px_rgba(0,0,0,.22)] sm:h-4">
-                <motion.div
+                <div
                   className="relative h-full rounded-full bg-[linear-gradient(90deg,#6f9447_0%,#a6cf70_52%,#f1dfaf_100%)] shadow-[0_10px_24px_rgba(95,131,55,.24)] after:absolute after:inset-0 after:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent)]"
-                  animate={{ width: `${progress}%` }}
-                  transition={{ type: "spring", stiffness: 170, damping: 22 }}
+                  style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:gap-4 lg:grid-cols-4">
             {steps.map((step, i) => {
@@ -171,10 +165,9 @@ export default function VisitFlow() {
               const progressStep = Math.round(((i + 1) / steps.length) * 100);
 
               return (
-                <motion.button
+                <button
                   key={step.title}
                   type="button"
-                  {...reveal(i)}
                   ref={(node) => {
                     cardRefs.current[i] = node;
                   }}
@@ -191,8 +184,7 @@ export default function VisitFlow() {
                   aria-pressed={isActive}
                 >
                   {isActive ? (
-                    <motion.span
-                      layoutId="elkah-visit-active-glow"
+                    <span
                       className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-[#a6cf70]/20 blur-xl sm:h-44 sm:w-44"
                     />
                   ) : null}
@@ -214,7 +206,7 @@ export default function VisitFlow() {
                     <span>{progressStep}% маршрута</span>
                     <ArrowUpRight size={15} className="sm:h-[17px] sm:w-[17px]" />
                   </div>
-                </motion.button>
+                </button>
               );
             })}
           </div>

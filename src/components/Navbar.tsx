@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Menu, Phone, X } from "lucide-react";
 import { BOOKING_CONTACTS } from "@/lib/bookingCatalog";
 
@@ -82,9 +81,9 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode
               ))}
             </nav>
 
-            <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }} onClick={onOpenBooking} className="btn-forest px-6 py-3 text-[0.95rem]">
+            <button onClick={onOpenBooking} className="btn-forest px-6 py-3 text-[0.95rem]">
               Записаться
-            </motion.button>
+            </button>
           </div>
 
           <div className="flex h-[72px] items-center gap-2.5 md:hidden">
@@ -101,14 +100,12 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode
                 На главную
               </Link>
             ) : (
-              <motion.button
-                whileHover={{ y: -1 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handleBooking}
                 className="btn-forest mobile-booking-pulse flex-1 rounded-[16px] px-4 py-3 text-[0.9rem]"
               >
                 Записаться
-              </motion.button>
+              </button>
             )}
 
             <button
@@ -124,16 +121,11 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode
         </div>
       </header>
 
-      <AnimatePresence>
-        {isMenuOpen ? (
-          <motion.div className="fixed inset-0 z-[70] md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      {isMenuOpen ? (
+          <div className="fixed inset-0 z-[70] md:hidden">
             <button type="button" className="absolute inset-0 bg-[rgba(5,13,8,.62)] backdrop-blur-sm" onClick={closeMenu} aria-label="Закрыть меню" />
 
-            <motion.div
-              initial={{ opacity: 0, y: -16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -12, scale: 0.98 }}
-              transition={{ duration: 0.2 }}
+            <div
               className="absolute left-3 right-3 top-[74px] rounded-[24px] border border-[#d6c388]/38 bg-[linear-gradient(180deg,rgba(16,37,22,.98),rgba(10,25,15,.96))] p-4 shadow-[0_22px_48px_rgba(0,0,0,.34)]"
             >
               <div className="mb-3 flex items-center justify-between gap-3">
@@ -169,10 +161,9 @@ export default function Navbar({ onOpenBooking, homeHrefPrefix = "", bookingMode
                   Записаться
                 </button>
               </nav>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+            </div>
+          </div>
+      ) : null}
     </>
   );
 }

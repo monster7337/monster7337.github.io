@@ -1,8 +1,6 @@
 "use client";
 
 import { Award, Star } from "lucide-react";
-import { motion } from "framer-motion";
-import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 
 const reviewPlatforms = [
   {
@@ -103,8 +101,6 @@ function avatarTone(platformId: string) {
 }
 
 export default function Reviews() {
-  const reveal = useScrollRevealMotion({ amount: 0.22, desktopDelayStep: 0.06, desktopDistance: 10 });
-
   return (
     <section className="forest-section lazy-bg-grass-2 py-12 sm:py-14" data-lazy-background>
       <div className="forest-overlay bg-[rgba(7,17,10,.62)]" />
@@ -116,8 +112,7 @@ export default function Reviews() {
         </p>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start">
-          <motion.aside
-            {...reveal(0)}
+          <aside
             className="rounded-[28px] border border-[rgba(236,222,187,.2)] bg-[linear-gradient(180deg,rgba(18,35,22,.9),rgba(28,48,31,.86))] p-4 text-[#f3ecd8] shadow-[0_24px_60px_rgba(0,0,0,.24)] backdrop-blur-[8px] sm:p-5"
           >
             <div className="flex items-start justify-between gap-4">
@@ -167,14 +162,12 @@ export default function Reviews() {
                 </article>
               ))}
             </div>
-          </motion.aside>
+          </aside>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {reviews.map((review, index) => (
-              <motion.article
+            {reviews.map((review) => (
+              <article
                 key={`${review.name}-${review.title}`}
-                {...reveal(index + 1)}
-                whileHover={{ y: -4 }}
                 className={`rounded-[28px] border border-[rgba(236,222,187,.22)] bg-[rgba(9,23,14,.56)] p-4 text-[#f6efde] shadow-[0_22px_54px_rgba(0,0,0,.22)] backdrop-blur-[8px] sm:p-5 ${
                   review.featured ? "md:col-span-2 xl:col-span-1" : ""
                 }`}
@@ -213,7 +206,7 @@ export default function Reviews() {
                     <span className="hidden sm:inline">{review.text}</span>
                   </p>
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
         </div>

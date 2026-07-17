@@ -1,10 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ArrowRight, BadgePercent, Clock3, Gift, Leaf, MapPin, ShieldCheck, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { BOOKING_TICKETS, BOOKING_CONTACTS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
-import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 
 type PricingProps = {
   onOpenBooking: (defaults?: { ticketId?: BookingTicketId; dateId?: string; time?: string }) => void;
@@ -25,8 +23,6 @@ const noteIcons: Record<BookingTicketId, typeof BadgePercent> = {
 };
 
 export default function Pricing({ onOpenBooking }: PricingProps) {
-  const reveal = useScrollRevealMotion({ amount: 0.16, desktopDelayStep: 0.06, desktopDistance: 10 });
-
   return (
     <section
       id="pricing"
@@ -50,16 +46,14 @@ export default function Pricing({ onOpenBooking }: PricingProps) {
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-6 md:grid-cols-2 md:gap-5">
-          {BOOKING_TICKETS.map((plan, idx) => {
+          {BOOKING_TICKETS.map((plan) => {
             const TicketIcon = ticketIcons[plan.id];
             const NoteIcon = noteIcons[plan.id];
             const isFeatured = plan.id === "standard";
 
             return (
-              <motion.article
+              <article
                 key={plan.id}
-                {...reveal(idx)}
-                whileHover={{ y: -3, scale: 1.005 }}
                 className={`relative overflow-hidden rounded-[22px] border p-3 shadow-[0_16px_32px_rgba(0,0,0,.26)] backdrop-blur-sm sm:p-5 ${
                   isFeatured
                     ? "border-[#e2c55f]/72 bg-[linear-gradient(180deg,rgba(18,41,12,.9)_0%,rgba(9,24,9,.96)_100%)] shadow-[0_0_0_1px_rgba(226,197,95,.22),0_0_34px_rgba(228,193,77,.24),0_20px_40px_rgba(0,0,0,.32)]"
@@ -128,7 +122,7 @@ export default function Pricing({ onOpenBooking }: PricingProps) {
                     <ArrowRight size={16} />
                   </button>
                 </div>
-              </motion.article>
+              </article>
             );
           })}
         </div>

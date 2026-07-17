@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CalendarDays, Heart, LayoutGrid, Sparkles, X } from "lucide-react";
 import Image from "next/image";
-import { useScrollRevealMotion } from "@/lib/useMobileMotion";
 import { useModalImagePreload } from "@/lib/useModalImagePreload";
 import { useModalViewportLock } from "@/lib/useModalViewportLock";
 
@@ -423,7 +421,6 @@ function SpeciesCard({
 export default function Animals({ onOpenBooking }: AnimalsProps) {
   const [activeSpecies, setActiveSpecies] = useState<SpeciesId | null>(null);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
-  const reveal = useScrollRevealMotion({ amount: 0.18, desktopDelayStep: 0.06, desktopDistance: 10 });
 
   const animalsBySpecies = useMemo(
     () => ({
@@ -513,27 +510,22 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {speciesGroups.map((group, index) => (
-              <motion.div key={group.id} {...reveal(index)} whileHover={{ y: -3 }}>
+            {speciesGroups.map((group) => (
+              <div key={group.id}>
                 <SpeciesCard group={group} count={animalsBySpecies[group.id].length} onOpen={openSpecies} />
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <AnimatePresence>
-        {activeSpecies && activeGroup ? (
-          <motion.div className="fixed inset-0 z-[90] p-2 sm:p-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      {activeSpecies && activeGroup ? (
+          <div className="fixed inset-0 z-[90] p-2 sm:p-5">
             <button type="button" className="absolute inset-0 bg-[rgba(4,10,7,.86)] backdrop-blur-[8px]" onClick={closeModal} aria-label="Закрыть модальное окно" />
 
             {!activeAnimal ? (
-              <motion.div
+              <div
                 className="relative mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-[#dcc892]/35 bg-[rgba(7,17,11,.97)] shadow-[0_30px_90px_rgba(0,0,0,.48)]"
-                initial={{ opacity: 0, scale: 0.97, y: 18 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.97, y: 14 }}
-                transition={{ duration: 0.24 }}
               >
                 <div className="flex items-start justify-between gap-3 border-b border-[#dcc892]/18 px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
                   <div>
@@ -601,14 +593,10 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
                     ) : null}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
+              <div
                 className="relative mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-[#dcc892]/35 bg-[rgba(7,17,11,.97)] shadow-[0_30px_90px_rgba(0,0,0,.48)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]"
-                initial={{ opacity: 0, scale: 0.97, y: 18 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.97, y: 14 }}
-                transition={{ duration: 0.24 }}
               >
                 <div className="relative h-[38svh] min-h-[260px] border-b border-[#dcc892]/18 lg:h-full lg:min-h-full lg:border-b-0 lg:border-r">
                   <Image
@@ -719,11 +707,10 @@ export default function Animals({ onOpenBooking }: AnimalsProps) {
                     ) : null}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+          </div>
+      ) : null}
     </>
   );
 }

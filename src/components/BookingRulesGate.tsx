@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Leaf, PawPrint, X } from "lucide-react";
 
 const OPEN_EVENT = "v-elkah:booking-gate-open";
@@ -189,32 +188,21 @@ export default function BookingRulesGate() {
   };
 
   return createPortal(
-    <AnimatePresence>
-      {isOpen ? (
-        <motion.div
+      isOpen ? (
+        <div
           className="fixed inset-0 z-[120] overflow-hidden p-3 sm:flex sm:items-center sm:justify-center sm:p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
         >
-          <motion.button
+          <button
             type="button"
             className="absolute inset-0 border-0 bg-[radial-gradient(circle_at_top,rgba(236,214,156,.14),transparent_34%),rgba(4,12,7,.72)] backdrop-blur-md"
             aria-label="Закрыть окно с правилами"
             onClick={close}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           />
 
-          <motion.div
+          <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="elkah-booking-gate-title"
-            initial={{ opacity: 0, y: 28, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 18, scale: 0.97 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="relative mx-auto flex w-full max-w-[720px] flex-col overflow-hidden rounded-[30px] border border-[#d6c388]/30 bg-[linear-gradient(180deg,rgba(15,36,21,.98),rgba(8,20,12,.98))] p-4 text-[#f6efdb] shadow-[0_32px_90px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.08)] sm:rounded-[34px] sm:p-7"
           >
             <div className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(228,203,122,.24)_0%,rgba(228,203,122,0)_72%)]" />
@@ -281,10 +269,9 @@ export default function BookingRulesGate() {
                 </span>
               </button>
             </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>,
+          </div>
+        </div>
+      ) : null,
     portalTarget
   );
 }

@@ -712,12 +712,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             ) : null}
 
                             <h4 className="mt-2 text-[0.82rem] font-black leading-[1.15] text-[#f7efdc] sm:mt-3 sm:text-[1.18rem]">
-                              <span className="sm:hidden">{ticket.mobileName}</span>
-                              <span className="hidden sm:inline">{ticket.name}</span>
+                              {ticket.name}
                             </h4>
                             <p className="mt-1.5 text-[0.68rem] leading-[1.35] text-[#efe4c8]/86 sm:mt-2 sm:text-[0.92rem]">
-                              <span className="sm:hidden">{ticket.mobileDescription}</span>
-                              <span className="hidden sm:inline">{ticket.description}</span>
+                              {ticket.description}
                             </p>
 
                             {infoOpen ? (

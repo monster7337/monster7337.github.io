@@ -133,9 +133,17 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
                 <span>ОГРН {BOOKING_CONTACTS.ogrn}</span>
               </div>
             </div>
-            <Link href="/privacy-policy" className="text-[0.82rem] text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
-              Политика конфиденциальности
-            </Link>
+            <div className="flex flex-col gap-2 text-[0.82rem] sm:items-end">
+              <a href="https://animalplaces.ru/" className="text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
+                Все пространства Animal Places
+              </a>
+              <a href="https://piggyland.ru/" className="text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
+                Антикафе Piggy Land
+              </a>
+              <Link href="/privacy-policy" className="text-[#f0a261] underline underline-offset-4 transition hover:text-[#ffd1a4]">
+                Политика конфиденциальности
+              </Link>
+            </div>
           </div>
         </div>
       </div>

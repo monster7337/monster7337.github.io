@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 
-const faqs = [
+export const faqs = [
   {
     q: "Можно без записи?",
     a: "Нет, посещение строго по предварительной записи. Это нужно для комфорта животных и гостей.",

@@ -11,8 +11,9 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: "ChatGPT-User", allow: "/" },
       { userAgent: "ClaudeBot", allow: "/" },
       { userAgent: "PerplexityBot", allow: "/" },
-      { userAgent: "*", allow: "/", disallow: ["/admin", "/api/"] }
+      { userAgent: "*", allow: "/", disallow: ["/api/"] }
     ],
-    sitemap: absoluteUrl("/sitemap.xml")
+    sitemap: absoluteUrl("/sitemap.xml"),
+    host: absoluteUrl("/").replace(/\/$/, "")
   };
 }

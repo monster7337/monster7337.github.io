@@ -522,7 +522,7 @@ export default function Animals({ onOpenBooking = () => requestBookingGate() }: 
 
       {activeSpecies && activeGroup ? (
           <div className="fixed inset-0 z-[90] p-2 sm:p-5">
-            <button type="button" className="absolute inset-0 bg-[rgba(4,10,7,.86)] backdrop-blur-[8px]" onClick={closeModal} aria-label="Закрыть модальное окно" />
+            <button type="button" className="absolute inset-0 bg-[rgba(4,10,7,.86)] backdrop-blur-[8px]" onClick={closeModal} aria-label="Закрыть увеличенную фотографию" />
 
             {!activeAnimal ? (
               <div

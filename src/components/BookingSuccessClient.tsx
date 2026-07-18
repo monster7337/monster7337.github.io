@@ -24,20 +24,20 @@ export default function BookingSuccessClient() {
   return (
     <div className="forest-card p-6 sm:p-8">
       <div className="inline-flex rounded-full border border-[#8fad5e]/35 bg-[rgba(255,255,255,.06)] px-4 py-2 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-[#dbe8be]">
-        {isGift ? "Сертификат оформлен" : "Бронь сохранена"}
+        {isGift ? "Сертификат оформлен" : "Бронирование сохранено"}
       </div>
       <h1 className="mt-4 text-[2rem] font-black leading-[1.02] text-[#f6efde] sm:text-[3rem]">
         {isGift ? "Сертификат оплачен и уже сохранен" : "Запись принята и уже сохранена"}
       </h1>
       <p className="mt-4 text-[0.95rem] leading-relaxed text-[#efe4c8]/84 sm:text-base">
         {isGift
-          ? "Заказ уже сохранен в системе вместе с данными покупателя, получателя и параметрами сертификата."
-          : "Мы уже получили вашу бронь с выбранными тарифами, датой, временем и суммой предоплаты."}
+          ? "Мы уже получили заказ с данными покупателя, получателя и выбранным сертификатом."
+          : "Мы уже получили ваше бронирование с выбранными билетами, датой, временем и суммой предоплаты."}
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4">
-          <span className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">{isGift ? "Номер заказа" : "Номер брони"}</span>
+          <span className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">{isGift ? "Номер заказа" : "Номер бронирования"}</span>
           <strong className="mt-2 block text-[1rem] text-[#f6efdb]">{bookingId || "Сформирован"}</strong>
         </div>
         <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4">
@@ -46,7 +46,7 @@ export default function BookingSuccessClient() {
         </div>
         <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4 sm:col-span-2">
           <span className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">{isGift ? "Сертификат" : "Билеты"}</span>
-          <strong className="mt-2 block text-[1rem] text-[#f6efdb]">{items || (isGift ? "Подарочный сертификат" : "Выбранные тарифы")}</strong>
+          <strong className="mt-2 block text-[1rem] text-[#f6efdb]">{items || (isGift ? "Подарочный сертификат" : "Выбранные билеты")}</strong>
         </div>
         <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4">
           <span className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">{isGift ? "Дата покупки" : "Дата"}</span>
@@ -68,7 +68,7 @@ export default function BookingSuccessClient() {
         </div>
         <div className="rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] p-4">
           <span className="text-[0.72rem] uppercase tracking-[0.16em] text-[#e8d9b4]">{isGift ? "Остаток" : "Остаток на месте"}</span>
-          <strong className="mt-2 block text-[1rem] text-[#f6efdb]">{remaining || total || (isGift ? "0 ₽" : "По тарифу")}</strong>
+          <strong className="mt-2 block text-[1rem] text-[#f6efdb]">{remaining || total || (isGift ? "0 ₽" : "По выбранным билетам")}</strong>
         </div>
       </div>
 

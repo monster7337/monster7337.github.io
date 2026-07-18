@@ -27,7 +27,7 @@ export default function Pricing() {
       <div className="forest-overlay bg-[rgba(8,18,11,.6)]" />
 
       <div className="container-x section-content">
-        <h2 className="section-title text-[1.95rem] sm:text-[2.35rem]">Тарифы и спецпредложения</h2>
+        <h2 className="section-title text-[1.95rem] sm:text-[2.35rem]">Билеты и специальные предложения</h2>
         <p className="mt-2 max-w-[620px] text-[0.92rem] text-[#efe4c8]/86 sm:hidden">
           Выберите подходящий билет и сразу переходите к записи.
         </p>
@@ -57,7 +57,7 @@ export default function Pricing() {
               >
                 {isFeatured ? (
                   <div className="absolute right-0 top-4 hidden rounded-l-[14px] bg-[linear-gradient(180deg,#efd26f_0%,#dcb34f_100%)] px-5 py-2 text-[0.9rem] font-black uppercase tracking-[0.06em] text-[#2f2408] shadow-[0_8px_18px_rgba(0,0,0,.18)] sm:block">
-                    Популярный тариф
+                    Часто выбирают
                   </div>
                 ) : null}
 

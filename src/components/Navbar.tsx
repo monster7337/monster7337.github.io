@@ -16,7 +16,7 @@ type NavbarProps = {
 const navSections = [
   { label: "О нас", href: "#about" },
   { label: "Отличия", href: "#differences" },
-  { label: "Тарифы", href: "#pricing" },
+  { label: "Билеты и цены", href: "#pricing" },
   { label: "Галерея", href: "#gallery" },
   { label: "Контакты", href: "#contacts" },
 ];

@@ -25,7 +25,7 @@ const bookingSteps = ["Билеты", "Дата", "Время", "Контакт�
 const bookingStepNotes = [
   "Выберите билеты на посещение",
   "Найдите удобный день визита",
-  "Выберите подходящий слот",
+  "Выберите подходящее время",
   "Оставьте контакты для связи",
   "Проверьте предоплату и детали",
 ];
@@ -361,7 +361,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
       .reduce((sum, ticket) => sum + ticket.quantity, 0);
 
     if (switchedToHappyHourCount > 0) {
-      return `Вы выбрали счастливый слот, поэтому ${switchedToHappyHourCount} ${getTicketWord(switchedToHappyHourCount)} ${switchedToHappyHourCount === 1 ? "перешел" : "перешли"} на цену счастливого часа.`;
+      return `Вы выбрали время счастливого часа. Сниженная цена применена к выбранным билетам: ${switchedToHappyHourCount}.`;
     }
 
     if (switchedToStandardCount > 0) {
@@ -487,7 +487,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
 
     if (familyCount > 0 && familyCount < 3) {
       setStep(0);
-      setStepError('Для тарифа "Семейный" нужно выбрать минимум 3 билета.');
+      setStepError('Для семейной цены нужно выбрать минимум 3 билета.');
       return;
     }
 
@@ -533,7 +533,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
         clientName: contactValues.name,
         clientEmail: contactValues.email,
         clientPhone: contactValues.phone,
-        serviceName: `В Ёлках: бронь ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")}`,
+        serviceName: `В Ёлках: бронирование ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")}`,
         successPath: `/booking/success?${params.toString()}`,
       });
 
@@ -566,7 +566,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
         return;
       }
       if (familyCount > 0 && familyCount < 3) {
-        setStepError('Для тарифа "Семейный" нужно выбрать минимум 3 билета.');
+        setStepError('Для семейной цены нужно выбрать минимум 3 билета.');
         return;
       }
     }
@@ -699,7 +699,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                                   infoOpen ? "border-[#d9c891]/55 bg-[rgba(255,255,255,.1)] text-[#f6efdb]" : "border-[#d6c388]/24 bg-[rgba(255,255,255,.05)] text-[#efe4c8]/82"
                                 )}
                                 onClick={() => setActiveInfoRateId(infoOpen ? null : ticket.id)}
-                                aria-label={`Подробнее о тарифе ${ticket.name}`}
+                                aria-label={`Подробнее о билете ${ticket.name}`}
                               >
                                 <Info size={16} />
                               </button>
@@ -836,8 +836,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       ) : null}
 
                       <div className="mt-4 rounded-[22px] border border-[#d6c388]/18 bg-[rgba(255,255,255,.05)] px-4 py-3 text-[0.83rem] leading-[1.45] text-[#efe4c8]/82">
-                        Все визиты проходят по фиксированным слотам: 11:00, 13:00, 15:00, 17:00 и 19:00. Длительность каждого визита 1 час.
-                        Метка счастливого часа появляется только на тех слотах, которые сейчас включены в админке на выбранную дату.
+                        Посещение начинается в установленное время: 11:00, 13:00, 15:00, 17:00 или 19:00. Каждый визит длится 1 час.
+                        Сниженная цена счастливого часа показывается только для доступного времени в выбранную дату.
                       </div>
                     </div>
                   ) : null}
@@ -1167,7 +1167,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                 </div>
 
                 <div className="mt-5 rounded-[22px] border border-[#8fad5e]/34 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.18)_100%)] px-4 py-4 text-[0.84rem] leading-[1.45] text-[#edf6df]">
-                  Визит проходит по фиксированным слотам и длится 1 час. Пожалуйста, проверьте дату, время и состав билетов перед оплатой.
+                  Визит начинается в выбранное время и длится 1 час. Пожалуйста, проверьте дату, время и состав билетов перед оплатой.
                 </div>
 
                 <div className="mt-4 grid gap-2">

@@ -11,7 +11,7 @@ export default function Footer({ homeHrefPrefix = "" }: FooterProps) {
     { label: "Главная", href: homeHrefPrefix || "#" },
     { label: "О нас", href: `${homeHrefPrefix}#about` },
     { label: "Отличия", href: `${homeHrefPrefix}#differences` },
-    { label: "Тарифы", href: `${homeHrefPrefix}#pricing` },
+    { label: "Билеты и цены", href: `${homeHrefPrefix}#pricing` },
     { label: "Сертификаты", href: "/gift-certificates" },
     { label: "Галерея", href: `${homeHrefPrefix}#gallery` },
     { label: "Запись", href: "/booking" },

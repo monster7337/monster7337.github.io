@@ -26,12 +26,12 @@ export default function Hero() {
         <div className="mx-auto w-full max-w-[360px] sm:max-w-[460px]">
           <div className="mx-auto rounded-[22px] border border-[rgba(236,222,187,.18)] bg-[rgba(9,23,14,.12)] px-3 py-3 text-center shadow-[0_18px_42px_rgba(0,0,0,.20)] backdrop-blur-[6px] sm:rounded-[24px] sm:px-5 sm:py-4">
             <p className="text-[8px] font-bold tracking-[0.14em] text-[#e7dbbb]/80 sm:text-[11px] sm:tracking-[0.18em] sm:text-[#e7dbbb]/82">
-              АНТИКАФЕ &quot;В ЁЛКАХ&quot;
+              ИДЕАЛЬНОЕ МЕСТО ДЛЯ ОТДЫХА С СЕМЬЁЙ И ДРУЗЬЯМИ
             </p>
 
             <h1 className="mt-2 text-[1.12rem] font-black leading-[1.04] tracking-tight text-[#f6efde] drop-shadow-[0_2px_12px_rgba(0,0,0,.45)] sm:text-[1.88rem] sm:leading-[1.04]">
-              <span className="sm:hidden">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
-              <span className="hidden sm:inline">Идеальное место для незабываемого отдыха в кругу семьи или друзей</span>
+              <span className="sm:hidden">Антикафе с белками и минипигами «В Ёлках»</span>
+              <span className="hidden sm:inline">Антикафе с белками и минипигами «В Ёлках»</span>
             </h1>
 
             <p className="mx-auto mt-2 max-w-[228px] text-[0.68rem] font-semibold leading-[1.32] text-[#ffefc8]/90 sm:mt-3 sm:max-w-[410px] sm:text-[0.9rem] sm:font-bold sm:text-[#ffefc8]/94">

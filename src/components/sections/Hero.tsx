@@ -9,6 +9,7 @@ export default function Hero() {
           <source media="(min-width: 640px)" srcSet="/bg/hero.webp" type="image/webp" />
           <source srcSet="/bg/heromobile.avif" type="image/avif" />
           <img
+            data-site-hero
             src="/bg/heromobile.webp"
             alt='Антикафе "В Ёлках"'
             width={941}

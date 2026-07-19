@@ -5,6 +5,7 @@ import { CalendarDays, Check, CircleAlert, Clock3, CreditCard, Info, Minus, Phon
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import BookingTestingNotice from "@/components/BookingTestingNotice";
 import {
   defaultSettings,
   FIXED_SLOT_TIMES,
@@ -12,13 +13,10 @@ import {
   isHappyHourEnabled,
   readStoredAppointments,
   readStoredSettings,
-  savePublicBooking,
 } from "@/components/admin/admin-data";
 import { BOOKING_CONTACTS, BOOKING_TICKETS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
 import { DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
-import { createPaykeeperInvoice } from "@/lib/paykeeperClient";
 
-const BOOKING_PREPAYMENT_PER_GUEST = 500;
 const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
 
 const bookingSteps = ["Билеты", "Дата", "Время", "Контакты", "Подтверждение"];
@@ -27,15 +25,8 @@ const bookingStepNotes = [
   "Найдите удобный день визита",
   "Выберите подходящее время",
   "Оставьте контакты для связи",
-  "Проверьте предоплату и детали",
+  "Проверьте детали и уточните запись",
 ];
-
-const tariffMap: Record<BookingTicketId, string> = {
-  standard: "Обычный билет",
-  family: "Семейный билет",
-  social: "Льготный билет",
-  "happy-hour": "Счастливый час",
-};
 
 type BookingPlannerProps = {
   initialTicketId?: BookingTicketId;
@@ -82,8 +73,6 @@ function SummaryRows({
   selectedTimeLabel,
   totalTicketsCount,
   total,
-  prepaymentNow,
-  remainingOnSite,
   happyHourDiscountAmount,
 }: {
   selectedTickets: SelectedTicket[];
@@ -91,8 +80,6 @@ function SummaryRows({
   selectedTimeLabel: string;
   totalTicketsCount: number;
   total: number;
-  prepaymentNow: number;
-  remainingOnSite: number;
   happyHourDiscountAmount: number;
 }) {
   return (
@@ -151,7 +138,7 @@ function SummaryRows({
       <div className="rounded-[24px] border border-[#d6c388]/28 bg-[rgba(255,255,255,.06)] p-4">
         <span className="flex items-center gap-2 text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[#e5d5ad]">
           <CreditCard size={15} />
-          Оплата
+          Стоимость визита
         </span>
         <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
@@ -165,12 +152,12 @@ function SummaryRows({
             </div>
           ) : null}
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
-            <span>Предоплата сейчас</span>
-            <strong className="text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
+            <span>Оплата на сайте</span>
+            <strong className="text-[#f7efdc]">Недоступна</strong>
           </div>
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
-            <span>Остаток на месте</span>
-            <strong className="text-[#f7efdc]">{formatCurrency(remainingOnSite)}</strong>
+            <span>Уточнение записи</span>
+            <strong className="text-[#f7efdc]">По телефону</strong>
           </div>
         </div>
       </div>
@@ -197,7 +184,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const [consentValues, setConsentValues] = useState<ConsentValues>({ terms: false, personalData: false });
   const [consentErrors, setConsentErrors] = useState<Partial<Record<keyof ConsentValues, string>>>({});
   const [stepError, setStepError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTestingNoticeOpen, setIsTestingNoticeOpen] = useState(true);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
   const [storageSnapshot, setStorageSnapshot] = useState(getStorageSnapshot);
 
@@ -400,12 +387,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   }, [selectedDate, selectedTime, storageSnapshot.appointments, storageSnapshot.settings, totalTicketsCount]);
 
   const total = ticketsTotal;
-  const prepaymentNow = totalTicketsCount * BOOKING_PREPAYMENT_PER_GUEST;
-  const remainingOnSite = Math.max(total - prepaymentNow, 0);
   const selectedDateLabel = selectedDate ? selectedDate.label : "Выберите дату";
   const selectedTimeLabel = selectedTime || "Выберите время";
   const mobileSelectionNote =
-    totalTicketsCount > 0 ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} · предоплата ${formatCurrency(prepaymentNow)}` : "Соберите визит по шагам";
+    totalTicketsCount > 0 ? `${totalTicketsCount} ${getTicketWord(totalTicketsCount)} выбрано` : "Соберите визит по шагам";
 
   function resetStatuses() {
     setStepError("");
@@ -460,91 +445,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     return Object.keys(nextErrors).length === 0 && Object.keys(nextConsentErrors).length === 0;
   }
 
-  async function finalizeBooking() {
-    resetStatuses();
-
-    if (isSubmitting) {
-      return;
-    }
-
-    if (!selectedTickets.length) {
-      setStep(0);
-      setStepError("Добавьте хотя бы один билет перед отправкой.");
-      return;
-    }
-
-    if (!selectedDate) {
-      setStep(1);
-      setStepError("Выберите дату визита.");
-      return;
-    }
-
-    if (!selectedTime || timeSlots.find((slot) => slot.time === selectedTime)?.disabled) {
-      setStep(2);
-      setStepError("Выберите доступное время.");
-      return;
-    }
-
-    if (familyCount > 0 && familyCount < 3) {
-      setStep(0);
-      setStepError('Для семейной цены нужно выбрать минимум 3 билета.');
-      return;
-    }
-
-    if (!validateContacts()) {
-      setStep(3);
-      setStepError("Проверьте телефон перед отправкой заявки.");
-      return;
-    }
-
-    const guestTickets = selectedTickets.flatMap((item) =>
-      Array.from({ length: item.quantity }, () => ({
-        tariff: tariffMap[item.effectiveTariffId],
-      }))
-    );
-
-    try {
-      setIsSubmitting(true);
-      const appointment = savePublicBooking({
-        clientName: contactValues.name,
-        phone: contactValues.phone,
-        email: contactValues.email,
-        date: selectedDate.id,
-        time: selectedTime,
-        guestTickets,
-        selectedExtras: [],
-        comment: contactValues.comment,
-      });
-
-      const params = new URLSearchParams({
-        bookingId: appointment.id,
-        items: selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", "),
-        date: selectedDateLabel,
-        time: selectedTimeLabel,
-        tickets: String(totalTicketsCount),
-        total: formatCurrency(total),
-        prepayment: formatCurrency(prepaymentNow),
-        remaining: formatCurrency(remainingOnSite),
-        phone: contactValues.phone,
-      });
-      const invoice = await createPaykeeperInvoice({
-        amount: prepaymentNow,
-        orderId: appointment.id,
-        clientName: contactValues.name,
-        clientEmail: contactValues.email,
-        clientPhone: contactValues.phone,
-        serviceName: `В Ёлках: бронирование ${selectedTickets.map((item) => `${item.mobileName} x${item.quantity}`).join(", ")}`,
-        successPath: `/booking/success?${params.toString()}`,
-      });
-
-      window.sessionStorage.removeItem(BOOKING_DRAFT_STORAGE_KEY);
-      window.location.assign(invoice.paymentUrl);
-    } catch (error) {
-      setStep(2);
-      setStepError(error instanceof Error ? error.message : "Не удалось сохранить запись.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  function finalizeBooking() {
+    // Online booking is paused: keep the visitor's draft but never create an appointment or invoice.
+    setIsTestingNoticeOpen(true);
   }
 
   const siteTermsHref = "/terms-of-use";
@@ -627,8 +530,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                     <div className="mt-1 text-[0.9rem] font-bold text-[#f6efdb]">{selectedTimeLabel}</div>
                   </div>
                   <div className="rounded-[18px] border border-[#a7c873]/45 bg-[linear-gradient(180deg,rgba(122,166,74,.22)_0%,rgba(78,113,45,.18)_100%)] px-3 py-3">
-                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#dbe8be]">Сейчас</div>
-                    <div className="mt-1 text-[0.95rem] font-black text-[#f6efdb]">{formatCurrency(prepaymentNow)}</div>
+                    <div className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[#dbe8be]">Стоимость</div>
+                    <div className="mt-1 text-[0.95rem] font-black text-[#f6efdb]">{formatCurrency(total)}</div>
                   </div>
                 </div>
               </div>
@@ -1061,11 +964,10 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                             <CreditCard size={18} />
                           </div>
                           <div>
-                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#dbe8be]">Оплата</div>
-                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">Предоплата 500 ₽ за каждое место</h4>
+                            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#dbe8be]">Онлайн-запись</div>
+                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">Сайт временно тестируется</h4>
                             <p className="mt-2 text-[0.88rem] leading-[1.5] text-[#edf6df]">
-                              На сайте оплачивается только предварительная оплата: {formatCurrency(BOOKING_PREPAYMENT_PER_GUEST)} за каждое место.
-                              Сейчас вы вносите {formatCurrency(prepaymentNow)}, остаток {formatCurrency(remainingOnSite)} оплачивается на месте.
+                              После заполнения формы заявка не будет создана, а оплата на сайте недоступна. Уточните свободное время у администратора по телефону.
                             </p>
                             {happyHourDiscountAmount > 0 ? (
                               <p className="mt-2 text-[0.82rem] font-semibold leading-[1.45] text-[#dbe8be]">
@@ -1091,7 +993,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                       <div className="mt-1 text-[0.86rem] font-bold text-[#f6efdb]">{mobileSelectionNote}</div>
                     </div>
                     <div className="flex gap-2">
-                      <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
+                      <button type="button" className="btn-cream min-h-[44px] px-4" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
                         Назад
                       </button>
                       {step < bookingSteps.length - 1 ? (
@@ -1099,8 +1001,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                           Продолжить
                         </button>
                       ) : (
-                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking} disabled={isSubmitting}>
-                          Оплатить
+                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking}>
+                          Уточнить запись
                         </button>
                       )}
                     </div>
@@ -1116,17 +1018,17 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         {selectedDate?.dayLabel ?? "Дата не выбрана"} · {selectedTimeLabel} · {totalTicketsCount || 0} бил.
                       </div>
                       <div className="mt-1 text-[0.7rem] leading-[1.25] text-[#efe4c8]/72">
-                        Всего {formatCurrency(total)} · на месте {formatCurrency(remainingOnSite)}
+                        Стоимость визита: {formatCurrency(total)}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#e8d9b4]">Предоплата</div>
-                      <strong className="mt-1 block text-[1rem] text-[#f7efdc]">{formatCurrency(prepaymentNow)}</strong>
+                      <div className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[#e8d9b4]">Онлайн-запись</div>
+                      <strong className="mt-1 block text-[0.82rem] text-[#f7efdc]">В тестовом режиме</strong>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0 || isSubmitting} onClick={() => goToStep(Math.max(0, step - 1))}>
+                    <button type="button" className="btn-cream min-h-[44px] px-3 text-[0.82rem]" disabled={step === 0} onClick={() => goToStep(Math.max(0, step - 1))}>
                       Назад
                     </button>
                     {step < bookingSteps.length - 1 ? (
@@ -1134,8 +1036,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         Продолжить
                       </button>
                     ) : (
-                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking} disabled={isSubmitting}>
-                        Оплатить
+                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking}>
+                        Уточнить запись
                       </button>
                     )}
                   </div>
@@ -1149,7 +1051,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                   <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Ваш визит</div>
                   <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Сводка заказа</h3>
                   <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">
-                    Предоплата на сайте составляет 500 ₽ за каждое место. Остаток оплачивается уже в антикафе.
+                    Онлайн-запись временно тестируется: заявка не создаётся, а оплата на сайте недоступна.
                   </p>
                 </div>
 
@@ -1160,14 +1062,12 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                     selectedTimeLabel={selectedTimeLabel}
                     totalTicketsCount={totalTicketsCount}
                     total={total}
-                    prepaymentNow={prepaymentNow}
-                    remainingOnSite={remainingOnSite}
                     happyHourDiscountAmount={happyHourDiscountAmount}
                   />
                 </div>
 
                 <div className="mt-5 rounded-[22px] border border-[#8fad5e]/34 bg-[linear-gradient(180deg,rgba(122,166,74,.16)_0%,rgba(62,90,36,.18)_100%)] px-4 py-4 text-[0.84rem] leading-[1.45] text-[#edf6df]">
-                  Визит начинается в выбранное время и длится 1 час. Пожалуйста, проверьте дату, время и состав билетов перед оплатой.
+                  Визит начинается в выбранное время и длится 1 час. Проверьте дату, время и состав билетов, затем уточните запись у администратора.
                 </div>
 
                 <div className="mt-4 grid gap-2">
@@ -1181,6 +1081,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
           </div>
         </div>
       </div>
+      <BookingTestingNotice isOpen={isTestingNoticeOpen} onClose={() => setIsTestingNoticeOpen(false)} />
     </section>
   );
 }

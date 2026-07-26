@@ -32,6 +32,7 @@ yarn-error.log*
 .next-*.log
 .edge-*
 .paykeeper/
+.alfabank/
 .seo-cache/
 
 # env files (can opt-in for committing if needed)

@@ -5,27 +5,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Camera, Check, CircleAlert, Gift, Mail, MessageCircle, Minus, Plus, Send } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as adminData from "@/components/admin/admin-data";
-import { createPaykeeperInvoice } from "@/lib/paykeeperClient";
+import { createAlfabankPayment } from "@/lib/alfabankClient";
 
 const GIFT_GUEST_MIN = 1;
 const GIFT_GUEST_MAX = 12;
 const GIFT_SINGLE_PRICE = 1500;
 const GIFT_GROUP_PRICE = 1200;
 const GIFT_DRAFT_STORAGE_KEY = "velkah-gift-draft";
-const { formatCurrency, giftDeliveryOptions, saveGiftCertificatePurchase } = adminData as unknown as {
+const { formatCurrency, giftDeliveryOptions } = adminData as unknown as {
   formatCurrency: (value: number) => string;
   giftDeliveryOptions: string[];
-  saveGiftCertificatePurchase: (values: Record<string, unknown>) => {
-    id: string;
-    amount: number;
-    purchaserName: string;
-    purchaserPhone: string;
-    purchaserEmail: string;
-    recipientName: string;
-    certificateTitle: string;
-    purchaseDate: string;
-    purchaseTime: string;
-  };
 };
 
 const giftSteps = ["Количество", "Контакты"] as const;
@@ -277,39 +266,14 @@ export default function GiftCertificateOrderForm() {
     setIsSubmitting(true);
 
     try {
-      const order = saveGiftCertificatePurchase({
+      const payment = await createAlfabankPayment({
+        kind: "gift",
         ...values,
-        certificateId: "gift-visit",
-        certificateTitle,
         guestCount,
-        pricePerGuest,
-        amount: total,
+        consents: consentValues,
       });
 
-      const params = new URLSearchParams({
-        type: "gift",
-        bookingId: order.id,
-        items: order.certificateTitle,
-        date: order.purchaseDate,
-        time: order.purchaseTime,
-        total: formatCurrency(order.amount),
-        prepayment: formatCurrency(order.amount),
-        remaining: formatCurrency(0),
-        phone: order.purchaserPhone,
-        recipient: order.recipientName,
-      });
-      const invoice = await createPaykeeperInvoice({
-        amount: order.amount,
-        orderId: order.id,
-        clientName: order.purchaserName,
-        clientEmail: order.purchaserEmail,
-        clientPhone: order.purchaserPhone,
-        serviceName: `В Ёлках: ${order.certificateTitle}`,
-        successPath: `/booking/success?${params.toString()}`,
-      });
-
-      window.sessionStorage.removeItem(GIFT_DRAFT_STORAGE_KEY);
-      window.location.assign(invoice.paymentUrl);
+      window.location.assign(payment.paymentUrl);
     } catch (error) {
       setStepError(error instanceof Error ? error.message : "Не удалось оформить сертификат.");
     } finally {

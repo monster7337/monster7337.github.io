@@ -55,13 +55,13 @@ export default function BookingTestingNotice({ isOpen, onClose }: BookingTesting
             Важная информация
           </span>
           <h2 id="elki-booking-testing-title" className="mt-3 max-w-[440px] text-[1.75rem] font-black leading-[1.05] sm:text-[2.15rem]">
-            Онлайн-запись временно тестируется
+            Оплата работает в тестовом режиме
           </h2>
         </div>
 
         <div className="relative mt-6 space-y-3 text-[0.96rem] leading-[1.58] text-[#efe4c8]/90">
-          <p>После заполнения формы заявка не будет создана, а оплата на сайте сейчас недоступна.</p>
-          <p>Чтобы уточнить свободное время и записаться, пожалуйста, свяжитесь с администратором.</p>
+          <p>Можно заполнить форму и перейти на тестовую страницу Альфа-Банка. Реальные деньги списываться не будут.</p>
+          <p>Тестовый заказ появится в панели управления, но не займёт место и не попадёт в реальную выручку.</p>
           <a className="btn-cream mt-2 inline-flex min-h-[46px] w-full justify-center" href={BOOKING_CONTACTS.phoneHref}>
             <Phone size={17} />
             <span className="ml-2">Позвонить: {BOOKING_CONTACTS.phone}</span>

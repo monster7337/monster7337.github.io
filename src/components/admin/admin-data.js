@@ -590,7 +590,9 @@ export function getDayIncomeEntries(appointments, giftOrders, financeRecords, da
       return entries;
     });
 
-  const giftEntries = getDayGiftOrders(giftOrders, dateKey).map((order) => ({
+  const giftEntries = getDayGiftOrders(giftOrders, dateKey)
+    .filter((order) => order.status === "paid" && order.alfabankMode !== "test")
+    .map((order) => ({
     id: `income-gift-${order.id}`,
     type: "income",
     stream: "Сертификаты",
@@ -884,7 +886,13 @@ export function getSlotCapacity(settings, dateKey, time) {
 
 export function getSlotBookedGuests(appointments, dateKey, time, excludeId = "") {
   return getDayAppointments(appointments, dateKey)
-    .filter((appointment) => appointment.time === time && appointment.id !== excludeId && isAppointmentActive(appointment))
+    .filter(
+      (appointment) =>
+        appointment.time === time &&
+        appointment.id !== excludeId &&
+        appointment.alfabankMode !== "test" &&
+        isAppointmentActive(appointment)
+    )
     .reduce((sum, appointment) => sum + normalizeGuestCount(appointment.guestCount), 0);
 }
 
@@ -1407,7 +1415,9 @@ export function getDayGiftOrders(giftOrders, dateKey) {
 }
 
 export function getDayGiftRevenue(giftOrders, dateKey) {
-  return getDayGiftOrders(giftOrders, dateKey).reduce((sum, order) => sum + normalizeAmount(order.amount), 0);
+  return getDayGiftOrders(giftOrders, dateKey)
+    .filter((order) => order.status === "paid" && order.alfabankMode !== "test")
+    .reduce((sum, order) => sum + normalizeAmount(order.amount), 0);
 }
 
 export function normalizeActivityEntry(entry) {

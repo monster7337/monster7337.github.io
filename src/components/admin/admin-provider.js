@@ -17,6 +17,7 @@ import {
   normalizeActivityEntry,
   normalizeAppointment,
   normalizeFinanceRecord,
+  normalizeGiftCertificateOrder,
   normalizeSettings,
   readStoredActivityLog,
   readStoredAppointments,
@@ -43,7 +44,7 @@ export function AdminProvider({ children }) {
   const [detailId, setDetailId] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [hydrated, setHydrated] = useState(false);
-  const syncedPaykeeperPaymentsRef = useRef(new Set());
+  const syncedAlfabankOrdersRef = useRef(new Set());
   const appointmentsRef = useRef([]);
   const giftOrdersRef = useRef([]);
 
@@ -150,117 +151,177 @@ export function AdminProvider({ children }) {
 
     let disposed = false;
 
-    async function syncPaykeeperPayments() {
+    function getOrderDateParts(createdAt) {
+      const date = new Date(createdAt);
+      const fallback = new Date();
+      const safeDate = Number.isNaN(date.getTime()) ? fallback : date;
+
+      return {
+        date: formatDateKey(safeDate),
+        time: `${`${safeDate.getHours()}`.padStart(2, "0")}:${`${safeDate.getMinutes()}`.padStart(2, "0")}`
+      };
+    }
+
+    function getRemoteStatus(order) {
+      if (["cancelled", "declined", "refunded", "registration_failed", "amount_mismatch"].includes(order.status)) {
+        return "canceled";
+      }
+
+      return order.status === "paid" && order.mode === "production" ? "confirmed" : "pending";
+    }
+
+    function mapBookingOrder(order) {
+      const details = order.details;
+      const isRealPayment = order.mode === "production" && order.status === "paid";
+      const guestTickets = (details.tickets || []).flatMap((ticket) =>
+        Array.from({ length: ticket.quantity }, (_, index) => ({
+          id: `${order.orderNumber}-${ticket.id}-${index + 1}`,
+          tariff: ticket.title
+        }))
+      );
+      const modeLabel = order.mode === "test" ? "ТЕСТОВЫЙ ПЛАТЁЖ" : "АЛЬФА-БАНК";
+
+      return normalizeAppointment({
+        id: order.orderNumber,
+        clientName: details.customer.name,
+        phone: details.customer.phone,
+        email: details.customer.email,
+        date: details.date,
+        time: details.time,
+        guestCount: details.guestCount,
+        guestTickets,
+        service: guestTickets[0]?.tariff,
+        selectedExtras: [],
+        comment: `[${modeLabel}] ${details.customer.comment || "Заказ с сайта"} · статус: ${order.status}`,
+        status: getRemoteStatus(order),
+        source: "Сайт",
+        prepaymentAmount: isRealPayment ? details.paymentAmount : 0,
+        paymentMethod: isRealPayment ? "online" : "",
+        onSitePaymentAmount: 0,
+        onSitePaymentMethod: "",
+        alfabankMode: order.mode,
+        alfabankStatus: order.status,
+        alfabankOrderId: order.bankOrderId,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      });
+    }
+
+    function mapGiftOrder(order) {
+      const details = order.details;
+      const created = getOrderDateParts(order.createdAt);
+      const isRealPayment = order.mode === "production" && order.status === "paid";
+      const modeLabel = order.mode === "test" ? "ТЕСТОВЫЙ ПЛАТЁЖ" : "АЛЬФА-БАНК";
+
+      return normalizeGiftCertificateOrder({
+        id: order.orderNumber,
+        certificateId: "gift-visit",
+        certificateTitle: details.title,
+        amount: details.paymentAmount,
+        guestCount: details.guestCount,
+        pricePerGuest: details.pricePerGuest,
+        purchaserName: details.customer.name,
+        purchaserPhone: details.customer.phone,
+        purchaserEmail: details.customer.email,
+        recipientName: details.recipient.name,
+        recipientPhone: details.recipient.phone,
+        recipientEmail: details.recipient.email,
+        deliveryContact: details.deliveryContact,
+        message: details.message,
+        deliveryMethod: details.deliveryMethod,
+        comment: `[${modeLabel}] ${details.customer.comment || "Заказ с сайта"} · статус: ${order.status}`,
+        source: "Сайт",
+        status: isRealPayment ? "paid" : order.status,
+        paymentMethod: isRealPayment ? "online" : "",
+        alfabankMode: order.mode,
+        alfabankStatus: order.status,
+        alfabankOrderId: order.bankOrderId,
+        purchaseDate: created.date,
+        purchaseTime: created.time,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      });
+    }
+
+    async function syncAlfabankOrders() {
       try {
-        const response = await fetch("/api/paykeeper/callback", { cache: "no-store" });
+        const response = await fetch("/api/alfabank/admin/orders", { cache: "no-store" });
 
         if (!response.ok) {
           return;
         }
 
         const payload = await response.json();
-        const payments = Array.isArray(payload.payments) ? payload.payments : [];
+        const orders = Array.isArray(payload.orders) ? payload.orders : [];
+        const bookingOrders = orders.filter((order) => order?.details?.kind === "booking").map(mapBookingOrder);
+        const certificateOrders = orders.filter((order) => order?.details?.kind === "gift").map(mapGiftOrder);
         const activityEntries = [];
-        const syncedPaymentIds = [];
-        const now = new Date().toISOString();
 
-        const nextAppointments = appointmentsRef.current.map((appointment) => {
-          const payment = payments.find(
-            (item) =>
-              item?.id &&
-              item?.orderid === appointment.id &&
-              item.id !== appointment.paykeeperPaymentId &&
-              !syncedPaykeeperPaymentsRef.current.has(item.id)
-          );
-
-          if (!payment) {
-            return appointment;
+        bookingOrders.forEach((appointment) => {
+          const key = `${appointment.id}:${appointment.alfabankStatus}`;
+          if (!syncedAlfabankOrdersRef.current.has(key)) {
+            activityEntries.push(
+              createActivityEntry({
+                entityId: appointment.id,
+                entityType: "appointment",
+                kind: appointment.alfabankStatus === "paid" ? "payment" : "created",
+                relatedDate: appointment.date,
+                relatedTime: appointment.time,
+                tone: appointment.alfabankStatus === "paid" ? "success" : "info",
+                message: `Альфа-Банк: ${appointment.alfabankMode === "test" ? "тестовая " : ""}бронь ${appointment.clientName} · ${appointment.alfabankStatus}.`
+              })
+            );
+            syncedAlfabankOrdersRef.current.add(key);
           }
-
-          const paidAmount = Number(payment.sum) || appointment.prepaymentAmount || 0;
-          const prepaymentAmount = Math.max(appointment.prepaymentAmount || 0, Math.min(paidAmount, appointment.totalAmount || paidAmount));
-
-          syncedPaymentIds.push(payment.id);
-          activityEntries.push(
-            createActivityEntry({
-              entityId: appointment.id,
-              entityType: "appointment",
-              kind: "payment",
-              relatedDate: appointment.date,
-              relatedTime: appointment.time,
-              tone: "success",
-              message: `PayKeeper: оплата ${formatCurrency(paidAmount)} привязана к брони ${appointment.clientName}.`
-            })
-          );
-
-          return {
-            ...appointment,
-            prepaymentAmount,
-            paymentMethod: "online",
-            remainingAmount: Math.max(0, (appointment.totalAmount || 0) - prepaymentAmount - (appointment.onSitePaymentAmount || 0)),
-            status: appointment.status === "new" || appointment.status === "pending" ? "confirmed" : appointment.status,
-            paykeeperPaymentId: payment.id,
-            paykeeperPaidAt: payment.lastCallbackAt || now,
-            updatedAt: now
-          };
         });
 
-        const nextOrders = giftOrdersRef.current.map((order) => {
-          const payment = payments.find(
-            (item) =>
-              item?.id &&
-              item?.orderid === order.id &&
-              item.id !== order.paykeeperPaymentId &&
-              !syncedPaykeeperPaymentsRef.current.has(item.id)
-          );
-
-          if (!payment) {
-            return order;
+        certificateOrders.forEach((order) => {
+          const key = `${order.id}:${order.alfabankStatus}`;
+          if (!syncedAlfabankOrdersRef.current.has(key)) {
+            activityEntries.push(
+              createActivityEntry({
+                entityId: order.id,
+                entityType: "gift-certificate",
+                kind: order.alfabankStatus === "paid" ? "paid" : "created",
+                relatedDate: order.purchaseDate,
+                relatedTime: order.purchaseTime,
+                tone: order.alfabankStatus === "paid" ? "success" : "info",
+                message: `Альфа-Банк: ${order.alfabankMode === "test" ? "тестовый " : ""}сертификат ${order.purchaserName} · ${order.alfabankStatus}.`
+              })
+            );
+            syncedAlfabankOrdersRef.current.add(key);
           }
-
-          syncedPaymentIds.push(payment.id);
-          activityEntries.push(
-            createActivityEntry({
-              entityId: order.id,
-              entityType: "gift-certificate",
-              kind: "paid",
-              relatedDate: order.purchaseDate,
-              relatedTime: order.purchaseTime,
-              tone: "success",
-              message: `PayKeeper: оплата ${formatCurrency(Number(payment.sum) || order.amount)} привязана к сертификату ${order.certificateTitle}.`
-            })
-          );
-
-          return {
-            ...order,
-            status: "paid",
-            paymentMethod: "online",
-            paykeeperPaymentId: payment.id,
-            paykeeperPaidAt: payment.lastCallbackAt || now,
-            updatedAt: now
-          };
         });
 
-        if (nextAppointments.some((appointment, index) => appointment !== appointmentsRef.current[index])) {
-          setAppointments(sortAppointments(nextAppointments));
-        }
+        setAppointments((current) => {
+          const remoteIds = new Set(bookingOrders.map((order) => order.id));
+          const localOrders = current.filter((appointment) => !remoteIds.has(appointment.id));
+          const mergedRemoteOrders = bookingOrders.map((remoteOrder) => {
+            const existing = current.find((appointment) => appointment.id === remoteOrder.id);
+            if (!existing || !["completed", "canceled"].includes(existing.status)) {
+              return remoteOrder;
+            }
+            return { ...remoteOrder, status: existing.status, onSitePaymentAmount: existing.onSitePaymentAmount, onSitePaymentMethod: existing.onSitePaymentMethod };
+          });
+          return sortAppointments([...localOrders, ...mergedRemoteOrders]);
+        });
 
-        if (nextOrders.some((order, index) => order !== giftOrdersRef.current[index])) {
-          setGiftOrders(nextOrders);
-        }
+        setGiftOrders((current) => {
+          const remoteIds = new Set(certificateOrders.map((order) => order.id));
+          return [...current.filter((order) => !remoteIds.has(order.id)), ...certificateOrders];
+        });
 
-        if (!disposed && syncedPaymentIds.length) {
-          syncedPaymentIds.forEach((id) => syncedPaykeeperPaymentsRef.current.add(id));
+        if (!disposed && activityEntries.length) {
           activityEntries.forEach((entry) => appendActivity(entry));
-          pushToast(`PayKeeper: синхронизировано оплат — ${syncedPaymentIds.length}`);
+          pushToast(`Заказы Альфа-Банка обновлены: ${activityEntries.length}`);
         }
       } catch {
-        // GitHub Pages has no API runtime; local/ngrok dev server does. Silent fallback keeps the static CRM usable.
+        // Keep locally entered records available if the payment service is temporarily unreachable.
       }
     }
 
-    syncPaykeeperPayments();
-    const intervalId = window.setInterval(syncPaykeeperPayments, 20000);
+    syncAlfabankOrders();
+    const intervalId = window.setInterval(syncAlfabankOrders, 20000);
 
     return () => {
       disposed = true;

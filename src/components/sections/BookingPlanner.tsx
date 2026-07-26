@@ -16,6 +16,7 @@ import {
 } from "@/components/admin/admin-data";
 import { BOOKING_CONTACTS, BOOKING_TICKETS, BookingTicketId, formatCurrency } from "@/lib/bookingCatalog";
 import { DEFAULT_BOOKING_TIME, getBookingDateOptions } from "@/lib/bookingOptions";
+import { createAlfabankPayment } from "@/lib/alfabankClient";
 
 const BOOKING_DRAFT_STORAGE_KEY = "velkah-booking-draft";
 
@@ -153,11 +154,11 @@ function SummaryRows({
           ) : null}
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
             <span>Оплата на сайте</span>
-            <strong className="text-[#f7efdc]">Недоступна</strong>
+            <strong className="text-[#f7efdc]">{formatCurrency(totalTicketsCount * 500)} · тест</strong>
           </div>
           <div className="flex items-center justify-between text-[0.88rem] text-[#efe4c8]/82">
-            <span>Уточнение записи</span>
-            <strong className="text-[#f7efdc]">По телефону</strong>
+            <span>Остаток на месте</span>
+            <strong className="text-[#f7efdc]">{formatCurrency(Math.max(0, total - totalTicketsCount * 500))}</strong>
           </div>
         </div>
       </div>
@@ -185,6 +186,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
   const [consentErrors, setConsentErrors] = useState<Partial<Record<keyof ConsentValues, string>>>({});
   const [stepError, setStepError] = useState("");
   const [isTestingNoticeOpen, setIsTestingNoticeOpen] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftRestored, setIsDraftRestored] = useState(false);
   const [storageSnapshot, setStorageSnapshot] = useState(getStorageSnapshot);
 
@@ -445,9 +447,40 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
     return Object.keys(nextErrors).length === 0 && Object.keys(nextConsentErrors).length === 0;
   }
 
-  function finalizeBooking() {
-    // Online booking is paused: keep the visitor's draft but never create an appointment or invoice.
-    setIsTestingNoticeOpen(true);
+  async function finalizeBooking() {
+    resetStatuses();
+
+    if (!validateContacts()) {
+      setStepError("Проверьте контакты и подтвердите оба согласия перед оплатой.");
+      return;
+    }
+
+    if (!selectedDate || !selectedTime || totalTicketsCount < 1) {
+      setStepError("Проверьте билеты, дату и время визита.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payment = await createAlfabankPayment({
+        kind: "booking",
+        tickets: selectedTickets.map((ticket) => ({
+          id: ticket.effectiveTariffId || ticket.id,
+          quantity: ticket.quantity,
+        })),
+        date: selectedDate.id,
+        dateLabel: selectedDate.dayLabel,
+        time: selectedTime,
+        customer: contactValues,
+        consents: consentValues,
+      });
+
+      window.location.assign(payment.paymentUrl);
+    } catch (error) {
+      setStepError(error instanceof Error ? error.message : "Не удалось открыть страницу оплаты.");
+      setIsSubmitting(false);
+    }
   }
 
   const siteTermsHref = "/terms-of-use";
@@ -965,9 +998,9 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                           </div>
                           <div>
                             <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#dbe8be]">Онлайн-запись</div>
-                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">Сайт временно тестируется</h4>
+                            <h4 className="mt-2 text-[1.1rem] font-black text-[#f7efdc]">Тестовая оплата Альфа-Банка</h4>
                             <p className="mt-2 text-[0.88rem] leading-[1.5] text-[#edf6df]">
-                              После заполнения формы заявка не будет создана, а оплата на сайте недоступна. Уточните свободное время у администратора по телефону.
+                              После подтверждения откроется тестовая страница банка. Реальные деньги не списываются, а заказ появится в панели как тестовый.
                             </p>
                             {happyHourDiscountAmount > 0 ? (
                               <p className="mt-2 text-[0.82rem] font-semibold leading-[1.45] text-[#dbe8be]">
@@ -1001,8 +1034,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                           Продолжить
                         </button>
                       ) : (
-                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking}>
-                          Уточнить запись
+                        <button type="button" className="btn-forest min-h-[44px] px-4" onClick={finalizeBooking} disabled={isSubmitting}>
+                          {isSubmitting ? "Открываем оплату..." : "Перейти к оплате"}
                         </button>
                       )}
                     </div>
@@ -1036,8 +1069,8 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                         Продолжить
                       </button>
                     ) : (
-                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking}>
-                        Уточнить запись
+                      <button type="button" className="btn-forest min-h-[44px] px-3 text-[0.82rem]" onClick={finalizeBooking} disabled={isSubmitting}>
+                        {isSubmitting ? "Открываем..." : "К оплате"}
                       </button>
                     )}
                   </div>
@@ -1051,7 +1084,7 @@ export default function BookingPlanner({ initialTicketId, initialDateId, initial
                   <div className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#e8d9b4]">Ваш визит</div>
                   <h3 className="mt-2 text-[1.55rem] font-black text-[#f6efdb]">Сводка заказа</h3>
                   <p className="mt-2 text-[0.86rem] leading-[1.45] text-[#efe4c8]/82">
-                    Онлайн-запись временно тестируется: заявка не создаётся, а оплата на сайте недоступна.
+                    Сейчас используется тестовая форма Альфа-Банка. Реальные деньги не списываются, тестовые заказы не занимают места.
                   </p>
                 </div>
 

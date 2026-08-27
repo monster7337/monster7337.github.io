@@ -82,7 +82,7 @@ const pageMetaMap = {
   "/admin/calendar": {
     eyebrow: "Планирование",
     title: "Календарь",
-    description: "Слоты 11, 13, 15, 17 и 19 с 13 базовыми местами и резервом."
+    description: "Слоты 11, 13, 15, 17 и 19 с 12 базовыми местами и резервом."
   },
   "/admin/appointments": {
     eyebrow: "Записи",

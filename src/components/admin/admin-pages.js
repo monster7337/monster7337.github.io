@@ -1610,7 +1610,7 @@ export function AdminSettingsPage() {
       <form className={styles.settingsGrid} onSubmit={handleSubmit}>
         <Panel
           title="Общие настройки"
-          description="CRM работает по фиксированным часам: 11, 13, 15, 17 и 19. В каждом слоте 13 базовых мест и до 2 резервных."
+          description="CRM работает по фиксированным часам: 11, 13, 15, 17 и 19. В каждом слоте 12 базовых мест и до 2 резервных."
         >
           <div className={styles.formGrid}>
             <label className={clsx(styles.field, styles.settingField)}>

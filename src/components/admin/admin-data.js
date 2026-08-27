@@ -15,7 +15,7 @@ const LEGACY_ADMIN_DATA_KEYS = [
   "velkah-admin-finance-records"
 ];
 
-export const PUBLIC_SLOT_CAPACITY = 13;
+export const PUBLIC_SLOT_CAPACITY = 12;
 export const SLOT_RESERVE_CAPACITY = 2;
 export const MAX_SLOT_CAPACITY = PUBLIC_SLOT_CAPACITY + SLOT_RESERVE_CAPACITY;
 export const BOOKING_PREPAYMENT_PER_GUEST = 500;
